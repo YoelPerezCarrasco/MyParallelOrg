@@ -1,5 +1,5 @@
 "use client";
-import { cn } from "../../lib/utils";
+import { cn } from "./lib/utils";
 import { motion } from "framer-motion";
 import { RefObject, useEffect, useId, useState } from "react";
 import Meteors from "./meteors";

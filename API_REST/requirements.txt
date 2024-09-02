@@ -1,4 +1,3 @@
-fastapi
 uvicorn
 sqlalchemy
 databases
@@ -9,3 +8,8 @@ python-jose
 httpx
 psycopg2-binary
 networkx
+three
+passlib 
+fastapi-users 
+fastapi[all]
+bcrypt
