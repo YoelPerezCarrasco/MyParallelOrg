@@ -8,7 +8,7 @@ const AdminDashboard: React.FC = () => (
     {/* Fondo interactivo (Flickering Grid) */}
     <FlickeringGrid />
 
-    <div className="container mt-5 position-relative" style={{ zIndex: 1 }}>
+    <div className="container position-relative" style={{ zIndex: 1 }}>
       <h2 className="display-3 mb-4 text-center">Admin Dashboard</h2>
       <p className="mb-4 text-center">¡Bienvenido al panel de administración! Aquí puedes gestionar los usuarios de la plataforma.</p>
 
@@ -31,7 +31,7 @@ const AdminDashboard: React.FC = () => (
             <div className="card-body text-center">
               <h5 className="card-title">Listar Usuarios</h5>
               <p className="card-text">Ver todos los usuarios registrados.</p>
-              <Link to="/admin/users" className="btn btn-primary">Ver Usuarios</Link>
+              <Link to="/admin/users/list" className="btn btn-primary">Ver Usuarios</Link>
             </div>
           </div>
         </div>
@@ -41,24 +41,6 @@ const AdminDashboard: React.FC = () => (
               <h5 className="card-title">Crear Usuario</h5>
               <p className="card-text">Añadir un nuevo usuario a la plataforma.</p>
               <Link to="/admin/users/create" className="btn btn-success">Crear Usuario</Link>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-6 mb-3">
-          <div className="card">
-            <div className="card-body text-center">
-              <h5 className="card-title">Editar Usuario</h5>
-              <p className="card-text">Modificar la información de un usuario existente.</p>
-              <Link to="/admin/users/edit/:id" className="btn btn-warning">Editar Usuario</Link>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-6 mb-3">
-          <div className="card">
-            <div className="card-body text-center">
-              <h5 className="card-title">Eliminar Usuario</h5>
-              <p className="card-text">Borrar un usuario de la plataforma.</p>
-              <Link to="/admin/users/delete/:id" className="btn btn-danger">Eliminar Usuario</Link>
             </div>
           </div>
         </div>

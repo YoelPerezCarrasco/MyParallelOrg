@@ -17,6 +17,11 @@ class GitHubUserSchema(BaseModel):
         "from_attributes": True
     }
     
+class UserResponse(BaseModel):
+    id: int
+    rol: str
+    username: str
+    company: str
 
 class ChangePasswordRequest(BaseModel):
     username: str

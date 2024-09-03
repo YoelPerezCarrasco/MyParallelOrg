@@ -21,7 +21,7 @@ from typing import Optional, List, Dict
 
 from passlib.context import CryptContext
 
-from backend.schemas import UserCreate, ChangePasswordRequest
+from backend.schemas import UserCreate, ChangePasswordRequest, UserResponse
 from backend.requestgithub import fetch_github_user_stars, fetch_github_user_details, fetch_user_dominant_language,fetch_github_org_repos, fetch_github_repo_commits, fetch_github_repo_contributors  # Importa la función para obtener datos de GitHub
 from backend.crud import build_user_graph
 from backend.database import engine, Base, get_db
@@ -541,3 +541,58 @@ async def get_users_for_manager(db: Session = Depends(get_db), current_user: Use
     company_name = current_user.company
     users = db.query(GitHubUserModel).filter(GitHubUserModel.organization == company_name).all()
     return users
+
+
+@app.get("/users/", response_model=List[UserResponse])
+async def get_users(db: Session = Depends(get_db), current_user: UserModel = Depends(get_current_user)):
+    if not current_user.is_admin:  # Solo los administradores pueden acceder a esta lista
+        raise HTTPException(status_code=403, detail="Access forbidden: Only admins can access this resource.")
+    
+    users = db.query(UserModel).all()
+    return users
+
+
+@app.get("/users/{user_id}", response_model=UserCreate)
+async def get_user(user_id: int, db: Session = Depends(get_db), current_user: UserModel = Depends(get_current_user)):
+    if not current_user.is_admin and current_user.id != user_id:  # Solo los admins o el propio usuario pueden acceder a sus datos
+        raise HTTPException(status_code=403, detail="Access forbidden")
+
+    user = db.query(UserModel).filter(UserModel.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return user
+
+@app.put("/users/{user_id}", response_model=UserResponse)
+async def update_user(user_id: int, user_data: UserCreate, db: Session = Depends(get_db), current_user: UserModel = Depends(get_current_user)):
+    if not current_user.is_admin and current_user.id != user_id:  # Solo los admins o el propio usuario pueden editar sus datos
+        raise HTTPException(status_code=403, detail="Access forbidden")
+
+    user = db.query(UserModel).filter(UserModel.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.username = user_data.username
+    user.rol = user_data.rol
+    user.company = user_data.company
+    if user_data.password:
+        user.hashed_password = get_password_hash(user_data.password)
+
+    db.commit()
+    db.refresh(user)
+    
+    return user
+
+@app.delete("/users/{user_id}", status_code=204)
+async def delete_user(user_id: int, db: Session = Depends(get_db), current_user: UserModel = Depends(get_current_user)):
+    if not current_user.is_admin:  # Solo los administradores pueden eliminar usuarios
+        raise HTTPException(status_code=403, detail="Access forbidden")
+
+    user = db.query(UserModel).filter(UserModel.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    db.delete(user)
+    db.commit()
+    
+    return {"message": "User deleted successfully"}

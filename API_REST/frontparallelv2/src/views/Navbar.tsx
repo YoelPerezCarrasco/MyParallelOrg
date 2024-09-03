@@ -23,7 +23,7 @@ const Navbar: React.FC = () => {
     }
   }
 
-  let dashboardLink = "/dashboard";  // Valor predeterminado para usuarios normales
+  let dashboardLink = "/user/dashboard";  // Valor predeterminado para usuarios normales
 
   if (is_admin) {
     dashboardLink = "/admin/dashboard";  // Redirige a /admin/dashboard si es administrador
@@ -57,19 +57,19 @@ const Navbar: React.FC = () => {
           <ul className="navbar-nav ms-auto">
             <li className="nav-item">
               <Link className="nav-link" aria-current="page" to="/" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Home
+                Inicio
               </Link>
             </li>
             {!token ? (
               <>
                 <li className="nav-item">
                   <Link className="nav-link" to="/login" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Login
+                    Iniciar Sesión
                   </Link>
                 </li>
                 <li className="nav-item">
                   <Link className="nav-link" to="/register" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                    Register
+                    Registrarse
                   </Link>
                 </li>
               </>
@@ -95,7 +95,7 @@ const Navbar: React.FC = () => {
                     </a>
                     <ul className="dropdown-menu" aria-labelledby="navbarDropdown">
                       <li>
-                        <Link className="dropdown-item" to="/settings">Settings</Link>
+                        <Link className="dropdown-item" to="/settings">Ajustes</Link>
                       </li>
                       <li>
                         <hr className="dropdown-divider" />
@@ -106,7 +106,7 @@ const Navbar: React.FC = () => {
                           onClick={logoutUser}
                           style={{ cursor: "pointer", background: "none", border: "none" }}
                         >
-                          Logout
+                          Cerrar Sesión
                         </button>
                       </li>
                     </ul>

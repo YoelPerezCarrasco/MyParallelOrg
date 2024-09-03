@@ -49,32 +49,220 @@ const UserGraph: React.FC = () => {
 
   return (
     <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}>
-      <div style={{
-        zIndex: 9,
-        position: 'absolute',
-        top: 15,
-        right: 15,
-        background: 'rgba(0, 0, 0, .5)',
-        padding: '10px',
-        color: 'white',
-        borderRadius: '5px'
-      }}>
-        <button style={{ display: 'block', width: '100%', marginBottom: '5px', backgroundColor: "black" }} onClick={() => graphRef.current?.centerGraph()}>Centrar</button>
-        <button style={{ display: 'block', width: '100%', marginBottom: '5px', backgroundColor: "black" }} onClick={() => graphRef.current?.centerGraph([nodes[2]?.id])}>Centrar Nodo 2</button>
-        <button style={{ display: 'block', width: '100%', marginBottom: '5px', backgroundColor: "black" }} onClick={() => graphRef.current?.fitNodesInView()}>Ajustar Vista</button>
-        <br />
-        <button style={{ display: 'block', width: '100%', marginBottom: '5px', backgroundColor: "black" }} onClick={() => graphRef.current?.zoomIn()}>Acercar</button>
-        <button style={{ display: 'block', width: '100%', marginBottom: '5px', backgroundColor: "black" }} onClick={() => graphRef.current?.zoomOut()}>Alejar</button>
-        <button style={{ display: 'block', width: '100%', marginBottom: '5px', backgroundColor: "black" }} onClick={() => graphRef.current?.dollyIn()}>Dolly In</button>
-        <button style={{ display: 'block', width: '100%', marginBottom: '5px', backgroundColor: "black" }} onClick={() => graphRef.current?.dollyOut()}>Dolly Out</button>
-        <br />
-        <button style={{ display: 'block', width: '100%', marginBottom: '5px', backgroundColor: "black" }} onClick={() => graphRef.current?.panDown()}>Pan Abajo</button>
-        <button style={{ display: 'block', width: '100%', marginBottom: '5px', backgroundColor: "black" }} onClick={() => graphRef.current?.panUp()}>Pan Arriba</button>
-        <button style={{ display: 'block', width: '100%', marginBottom: '5px', backgroundColor: "black" }} onClick={() => graphRef.current?.panLeft()}>Pan Izquierda</button>
-        <button style={{ display: 'block', width: '100%', marginBottom: '5px', backgroundColor: "black" }} onClick={() => graphRef.current?.panRight()}>Pan Derecha</button>
-        <br />
-        <button style={{ display: 'block', width: '100%', marginBottom: '5px', backgroundColor: "black" }} onClick={toggleHelp}>Ayuda</button> {/* Botón de ayuda */}
-      </div>
+    <div style={{
+  zIndex: 9,
+  position: 'absolute',
+  top: 100,
+  right: 15,
+  background: 'rgba(0, 0, 0, .7)',
+  padding: '15px',
+  color: 'white',
+  borderRadius: '10px',
+  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)'
+}}>
+  <button style={{
+    display: 'block',
+    width: '100%',
+    marginBottom: '10px',
+    backgroundColor: "#212529",
+    color: "white",
+    padding: '10px 15px',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease'
+  }}
+  onClick={() => graphRef.current?.centerGraph()}
+  onMouseOver={(e) => e.currentTarget.style.backgroundColor = "#555"}
+  onMouseOut={(e) => e.currentTarget.style.backgroundColor = "#212529"}
+  >
+    Centrar
+  </button>
+  <button style={{
+    display: 'block',
+    width: '100%',
+    marginBottom: '10px',
+    backgroundColor: "#212529",
+    color: "white",
+    padding: '10px 15px',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease'
+  }}
+  onClick={() => graphRef.current?.fitNodesInView()}
+  onMouseOver={(e) => e.currentTarget.style.backgroundColor = "#555"}
+  onMouseOut={(e) => e.currentTarget.style.backgroundColor = "#212529"}
+  >
+    Ajustar Vista
+  </button>
+  <br />
+  <button style={{
+    display: 'block',
+    width: '100%',
+    marginBottom: '10px',
+    backgroundColor: "#212529",
+    color: "white",
+    padding: '10px 15px',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease'
+  }}
+  onClick={() => graphRef.current?.zoomIn()}
+  onMouseOver={(e) => e.currentTarget.style.backgroundColor = "#555"}
+  onMouseOut={(e) => e.currentTarget.style.backgroundColor = "#212529"}
+  >
+    Acercar
+  </button>
+  <button style={{
+    display: 'block',
+    width: '100%',
+    marginBottom: '10px',
+    backgroundColor: "#212529",
+    color: "white",
+    padding: '10px 15px',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease'
+  }}
+  onClick={() => graphRef.current?.zoomOut()}
+  onMouseOver={(e) => e.currentTarget.style.backgroundColor = "#555"}
+  onMouseOut={(e) => e.currentTarget.style.backgroundColor = "#212529"}
+  >
+    Alejar
+  </button>
+  <button style={{
+    display: 'block',
+    width: '100%',
+    marginBottom: '10px',
+    backgroundColor: "#212529",
+    color: "white",
+    padding: '10px 15px',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease'
+  }}
+  onClick={() => graphRef.current?.dollyIn()}
+  onMouseOver={(e) => e.currentTarget.style.backgroundColor = "#555"}
+  onMouseOut={(e) => e.currentTarget.style.backgroundColor = "#212529"}
+  >
+    Acercar Poco
+  </button>
+  <button style={{
+    display: 'block',
+    width: '100%',
+    marginBottom: '10px',
+    backgroundColor: "#212529",
+    color: "white",
+    padding: '10px 15px',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease'
+  }}
+  onClick={() => graphRef.current?.dollyOut()}
+  onMouseOver={(e) => e.currentTarget.style.backgroundColor = "#555"}
+  onMouseOut={(e) => e.currentTarget.style.backgroundColor = "#212529"}
+  >
+    Alejar Poco
+  </button>
+  <br />
+  <button style={{
+    display: 'block',
+    width: '100%',
+    marginBottom: '10px',
+    backgroundColor: "#212529",
+    color: "white",
+    padding: '10px 15px',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease'
+  }}
+  onClick={() => graphRef.current?.panDown()}
+  onMouseOver={(e) => e.currentTarget.style.backgroundColor = "#555"}
+  onMouseOut={(e) => e.currentTarget.style.backgroundColor = "#212529"}
+  >
+    Mover Subir
+  </button>
+  <button style={{
+    display: 'block',
+    width: '100%',
+    marginBottom: '10px',
+    backgroundColor: "#212529",
+    color: "white",
+    padding: '10px 15px',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease'
+  }}
+  onClick={() => graphRef.current?.panUp()}
+  onMouseOver={(e) => e.currentTarget.style.backgroundColor = "#555"}
+  onMouseOut={(e) => e.currentTarget.style.backgroundColor = "#212529"}
+  >
+    Mover Abajo
+  </button>
+  <button style={{
+    display: 'block',
+    width: '100%',
+    marginBottom: '10px',
+    backgroundColor: "#212529",
+    color: "white",
+    padding: '10px 15px',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease'
+  }}
+  onClick={() => graphRef.current?.panLeft()}
+  onMouseOver={(e) => e.currentTarget.style.backgroundColor = "#555"}
+  onMouseOut={(e) => e.currentTarget.style.backgroundColor = "#212529"}
+  >
+    Mover Derecha
+  </button>
+  <button style={{
+    display: 'block',
+    width: '100%',
+    marginBottom: '10px',
+    backgroundColor: "#212529",
+    color: "white",
+    padding: '10px 15px',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease'
+  }}
+  onClick={() => graphRef.current?.panRight()}
+  onMouseOver={(e) => e.currentTarget.style.backgroundColor = "#555"}
+  onMouseOut={(e) => e.currentTarget.style.backgroundColor = "#212529"}
+  >
+    Mover Izquierda
+  </button>
+  <br />
+  <button style={{
+    display: 'block',
+    width: '100%',
+    marginBottom: '10px',
+    backgroundColor: "#212529",
+    color: "white",
+    padding: '10px 15px',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease'
+  }}
+  onClick={toggleHelp}
+  onMouseOver={(e) => e.currentTarget.style.backgroundColor = "#555"}
+  onMouseOut={(e) => e.currentTarget.style.backgroundColor = "#212529"}
+  >
+    Ayuda
+  </button>
+</div>
+
       <GraphCanvas
         cameraMode="rotate"
         ref={graphRef}

@@ -20,18 +20,18 @@ const Registerpage: React.FC = () => {
   return (
     <div>
       <>
-        <section className="vh-100" style={{ backgroundColor: '#9A616D' }}>
+        <section className="vh-100" style={{ backgroundColor: 'GREY' }}>
           <div className="container py-5 h-100">
             <div className="row d-flex justify-content-center align-items-center h-100">
               <div className="col col-xl-10">
                 <div className="card" style={{ borderRadius: '1rem' }}>
                   <div className="row g-0">
-                    <div className="col-md-6 col-lg-5 d-none d-md-block">
+                  <div className="col-md-6 col-lg-5 d-flex justify-content-center align-items-center">
                       <img
-                        src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/img1.webp"
+                        src={require('./../styles/pngwing.com.png')}
                         alt="login form"
                         className="img-fluid"
-                        style={{ borderRadius: '1rem 0 0 1rem' }}
+                        style={{ borderRadius: "1rem", maxWidth: "80%", maxHeight: "80%" }}
                       />
                     </div>
                     <div className="col-md-6 col-lg-7 d-flex align-items-center">
@@ -42,24 +42,22 @@ const Registerpage: React.FC = () => {
                               className="fas fa-cubes fa-2x me-3"
                               style={{ color: '#ff6219' }}
                             />
-                            <span className="h3 fw-bold mb-0">
-                              Bienvenido a <b>MyParallelOrg👋</b>
-                            </span>
+                          
                           </div>
                           <h5
-                            className="fw-normal mb-3 pb-3"
+                            className="h3 mb-3 pb-3"
                             style={{ letterSpacing: 1 }}
                           >
                             Registrarse
                           </h5>
                           <div className="form-outline mb-4">
-                            <label htmlFor="roleSelect" className="form-label">Select Role</label>
+                            <label htmlFor="roleSelect" className="form-label">Elige tu rol</label>
                             <select
                                 id="roleSelect"
                                 className="form-select form-select-lg"
                                 onChange={(e) => setRol(e.target.value)}  // Asegúrate de tener un estado `role` para manejar este valor
                                 >
-                                <option value="" disabled selected>Select your role</option>
+                                <option value="" disabled selected>Rol</option>
                                 <option value="worker">Worker</option>
                                 <option value="manager">Manager</option>
                             </select>
@@ -97,16 +95,14 @@ const Registerpage: React.FC = () => {
                               className="btn btn-dark btn-lg btn-block"
                               type="submit"
                             >
-                              Register
+                              Registrarse
                             </button>
                           </div>
-                          <a className="small text-muted" href="#!">
-                            Forgot password?
-                          </a>
+                         
                           <p className="mb-5 pb-lg-2" style={{ color: '#393f81' }}>
-                            Already have an account?{' '}
+                            ¿Ya tienes una cuenta?{' '}
                             <Link to="/login" style={{ color: '#393f81' }}>
-                              Login Now
+                              Inciar Sesión
                             </Link>
                           </p>
                           <a href="#!" className="small text-muted">
@@ -125,16 +121,13 @@ const Registerpage: React.FC = () => {
           </div>
         </section>
         <footer className="bg-light text-center text-lg-start">
-          {/* Copyright */}
           <div
             className="text-center p-3"
-            style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.2)" }}
           >
-            © 2019 - till date Copyright:
-            <a className="text-dark" href="https://mdbootstrap.com/">
-            </a>
+            © 2024 - Yoel Pérez Carrasco
+            
           </div>
-          {/* Copyright */}
         </footer>
       </>
     </div>

@@ -22,46 +22,46 @@ const CreateUser: React.FC = () => {
 
   return (
     <div className="container mt-5">
-      <h2 className="mb-4">Create User</h2>
+      <h2 className="mb-4">Crear Usuario Nuevo En El Sistema</h2>
       <form onSubmit={handleCreateUser}>
         <div className="mb-3">
-          <label htmlFor="username" className="form-label">Username</label>
+          <label htmlFor="username" className="form-label">Usuario</label>
           <input
             type="text"
             id="username"
             className="form-control"
-            placeholder="Enter username"
+            placeholder="Introducte usuario"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
           />
         </div>
         <div className="mb-3">
-          <label htmlFor="password" className="form-label">Password</label>
+          <label htmlFor="password" className="form-label">Contraseña</label>
           <input
             type="password"
             id="password"
             className="form-control"
-            placeholder="Enter password"
+            placeholder="Introduce contraseña"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
         </div>
         <div className="mb-3">
-          <label htmlFor="companyname" className="form-label">Company Name</label>
+          <label htmlFor="companyname" className="form-label">Nombre de la Organización</label>
           <input
             type="text"
             id="companyname"
             className="form-control"
-            placeholder="Enter company name"
+            placeholder="Introduce nombre de la empresa"
             value={companyname}
             onChange={(e) => setCompanyName(e.target.value)}
             required
           />
         </div>
         <div className="mb-3">
-          <label htmlFor="rol" className="form-label">Role</label>
+          <label htmlFor="rol" className="form-label">Rol</label>
           <select
             id="rol"
             className="form-select"
@@ -69,13 +69,13 @@ const CreateUser: React.FC = () => {
             onChange={(e) => setRol(e.target.value)}
             required
           >
-            <option value="">Select role</option>
+            <option value="">Seleciona rol</option>
             <option value="manager">Manager</option>
             <option value="worker">Worker</option>
           </select>
         </div>
         {error && <div className="alert alert-danger" role="alert">{error}</div>}
-        <button type="submit" className="btn btn-primary">Create</button>
+        <button type="submit" className="btn btn-primary">Crear Usuario</button>
       </form>
     </div>
   );

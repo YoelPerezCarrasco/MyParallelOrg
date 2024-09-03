@@ -57,19 +57,49 @@ const ManagerDashboard: React.FC = () => {
         }
     };
 
+    const exportCSV = () => {
+        const headers = ["ID", "Username", "GitHub URL", "Organization", "Stars", "Dominant Language"];
+        const csvRows = [
+            headers.join(','), // Encabezados
+            ...users.map(user =>
+                [
+                    user.id,
+                    user.username,
+                    user.html_url,
+                    user.organization,
+                    user.stars,
+                    user.dominant_language
+                ].join(',')
+            )
+        ].join('\n');
+
+        const blob = new Blob([csvRows], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('hidden', '');
+        a.setAttribute('href', url);
+        a.setAttribute('download', `connections_${userOrganization}.csv`);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    };
+
     return (
         <div className="container mt-5">
-            <h2 className="text-center mb-4">Manager Dashboard</h2>
+            <h2 className="text-center mb-4">Conexiones de Empleados</h2>
 
             {userOrganization && (
                 <div className="text-center mb-4">
-                    <button className="btn btn-info" onClick={handleViewGraph}>
-                        View Organization Graph
+                    <button className="btn btn-info me-2" onClick={handleViewGraph}>
+                        Ver Grupos De Trabajo
+                    </button>
+                    <button className="btn btn-success" onClick={exportCSV}>
+                        Exportar CSV
                     </button>
                 </div>
             )}
 
-            <h3 className="text-center mb-5">Users in Your Organization</h3>
+            <h3 className="text-center mb-5">Trabajadores de tu Empresa</h3>
 
             {users.length > 0 ? (
                 <div className="row">
@@ -80,11 +110,11 @@ const ManagerDashboard: React.FC = () => {
                                 <div className="card-body text-center">
                                     <h5 className="card-title">{user.username}</h5>
                                     <p className="card-text">
-                                        <strong>Language:</strong> {user.dominant_language} <br />
-                                        <strong>Stars:</strong> {user.stars}
+                                        <strong>Lenguaje:</strong> {user.dominant_language} <br />
+                                        <strong>Reputación GitHub (Stars):</strong> {user.stars}
                                     </p>
                                     <a href={user.html_url} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
-                                        View GitHub Profile
+                                        Ver Perfil de Github
                                     </a>
                                 </div>
                             </div>
@@ -93,7 +123,8 @@ const ManagerDashboard: React.FC = () => {
                 </div>
             ) : (
                 <div className="alert alert-info text-center">
-                    No users found in your organization.
+                    Tu empresa no está todavia en nuestra base de datos.
+                    Comunicate con el administrador gestionar la inclusión.
                 </div>
             )}
         </div>

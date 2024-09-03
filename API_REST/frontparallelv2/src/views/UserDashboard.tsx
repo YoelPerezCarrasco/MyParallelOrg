@@ -50,7 +50,7 @@ const UserDashboard: React.FC = () => {
 
     return (
         <div className="container mt-5">
-            <h2 className="display-4 mb-4 text-center">Your Connections</h2>
+            <h2 className="display-4 mb-4 text-center">Tus Conexion en la Empresa</h2>
             {message ? (
                 <p className="text-center text-muted">{message}</p>
             ) : connections.length > 0 ? (

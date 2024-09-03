@@ -7,7 +7,6 @@ import UserDashboard from './views/UserDashboard';
 import AdminDashboard from './views/AdminDashboard';
 import UserList from './views/cruds/UserList';
 import CreateUser from './views/cruds/CreateUser';
-import EditUser from './views/cruds/EditUser';
 import Navbar from './views/Navbar';
 import PrivateRoute from './utils/PrivateRoute';
 import { RequireAdminToken } from './utils/RequireAdminToken';
@@ -41,17 +40,14 @@ const App: React.FC = () => {
           element={<RequireAdminToken><AdminDashboard /></RequireAdminToken>}
         />
         <Route
-          path="/admin/users"
+          path="/admin/users/list"
           element={<RequireAdminToken><UserList /></RequireAdminToken>}
         />
         <Route
           path="/admin/users/create"
           element={<RequireAdminToken><CreateUser /></RequireAdminToken>}
         />
-        <Route
-          path="/admin/users/edit/:id"
-          element={<RequireAdminToken><EditUser /></RequireAdminToken>}
-        />
+      
         <Route path="/graphs/:organization" element={<UserGraph />} />  {/* Esta es la ruta que captura el parámetro organization */}
 
         <Route path="/login" element={<Loginpage />} />
