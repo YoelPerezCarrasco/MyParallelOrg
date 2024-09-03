@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import FlickeringGrid from './../components/magicui/FlickeringGrid';
-import DataSelector from './../components/DataSelector'; // Asegúrate de ajustar la ruta si es necesario
+import FlickeringGrid from '../components/FlickeringGrid';
+import DataSelector from '../components/DataSelector'; // Asegúrate de ajustar la ruta si es necesario
 
 const AdminDashboard: React.FC = () => (
   <div className="position-relative" style={{ minHeight: '100vh' }}>

@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { Card, Form, Button, Alert, ProgressBar } from 'react-bootstrap';
-import AuthContext from '../context/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { Card, Form, Alert, ProgressBar } from 'react-bootstrap';
 import { parseJwt } from './../utils/jwtDecode';
 
 const Settings: React.FC = () => {
@@ -73,15 +72,15 @@ const Settings: React.FC = () => {
 
   return (
     <div className="container mt-5">
-      <h2 className="mb-4">Settings</h2>
+      <h2 className="mb-4">Ajustes</h2>
 
       <div className="row">
         {/* Server Status */}
         <div className="col-md-4 mb-4">
           <Card>
             <Card.Body>
-              <Card.Title>Server Status</Card.Title>
-              <Card.Text>Status: {serverStatus}</Card.Text>
+              <Card.Title>Estado Servidor</Card.Title>
+              <Card.Text>Estado: {serverStatus}</Card.Text>
             </Card.Body>
           </Card>
         </div>
@@ -90,7 +89,7 @@ const Settings: React.FC = () => {
         <div className="col-md-4 mb-4">
           <Card>
             <Card.Body>
-              <Card.Title>CPU Usage</Card.Title>
+              <Card.Title>Uso de CPU</Card.Title>
               <ProgressBar now={cpuUsage} label={`${cpuUsage}%`} />
             </Card.Body>
           </Card>
@@ -100,7 +99,7 @@ const Settings: React.FC = () => {
         <div className="col-md-4 mb-4">
           <Card>
             <Card.Body>
-              <Card.Title>Memory Usage</Card.Title>
+              <Card.Title>Uso de Memoria</Card.Title>
               <ProgressBar variant="info" now={memoryUsage} label={`${memoryUsage}%`} />
             </Card.Body>
           </Card>
@@ -110,7 +109,7 @@ const Settings: React.FC = () => {
         <div className="col-md-4 mb-4">
           <Card>
             <Card.Body>
-              <Card.Title>Disk Usage</Card.Title>
+              <Card.Title>Uso de Disco</Card.Title>
               <ProgressBar variant="warning" now={diskUsage} label={`${diskUsage}%`} />
             </Card.Body>
           </Card>
@@ -120,15 +119,15 @@ const Settings: React.FC = () => {
         <div className="col-md-8 mb-4">
           <Card>
             <Card.Body>
-              <Card.Title>Change Password</Card.Title>
+              <Card.Title>Cambiar Contraseña</Card.Title>
               {error && <Alert variant="danger">{error}</Alert>}
               {success && <Alert variant="success">{success}</Alert>}
               <Form onSubmit={handlePasswordChange}>
                 <Form.Group className="mb-3" controlId="currentPassword">
-                  <Form.Label>Current Password</Form.Label>
+                  <Form.Label>Contraseña Actual</Form.Label>
                   <Form.Control
                     type="password"
-                    placeholder="Enter current password"
+                    placeholder="Introduce contraseña actual"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     required
@@ -136,10 +135,10 @@ const Settings: React.FC = () => {
                 </Form.Group>
 
                 <Form.Group className="mb-3" controlId="newPassword">
-                  <Form.Label>New Password</Form.Label>
+                  <Form.Label>Contraseña Nueva</Form.Label>
                   <Form.Control
                     type="password"
-                    placeholder="Enter new password"
+                    placeholder="Introduce contraseña nueva"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
@@ -147,10 +146,10 @@ const Settings: React.FC = () => {
                 </Form.Group>
 
                 <Form.Group className="mb-3" controlId="confirmPassword">
-                  <Form.Label>Confirm New Password</Form.Label>
+                  <Form.Label>Confirmar Nueva Contraseña</Form.Label>
                   <Form.Control
                     type="password"
-                    placeholder="Confirm new password"
+                    placeholder="Confirmar nueva contraseña"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
@@ -160,7 +159,7 @@ const Settings: React.FC = () => {
                 className="btn btn-dark btn-lg btn-block"
                 type="submit"
             >
-                Change Password
+                Cambiar Contraseña
             </button>
               </Form>
             </Card.Body>

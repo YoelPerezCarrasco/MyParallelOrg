@@ -8,7 +8,6 @@ import AdminDashboard from './views/AdminDashboard';
 import UserList from './views/cruds/UserList';
 import CreateUser from './views/cruds/CreateUser';
 import Navbar from './views/Navbar';
-import PrivateRoute from './utils/PrivateRoute';
 import { RequireAdminToken } from './utils/RequireAdminToken';
 import Registerpage from './views/RegisterPage';
 import	UserGraph from './views/UserGraph';  // Importa el componente UserGraph
