@@ -24,7 +24,7 @@ def build_user_graph(db: Session, org_name: str):
             language=user.dominant_language,
             continent=user.location,
             stars=user.stars,
-            avatar_url=user.avatar_url,  # Suponiendo que `avatar_url` es el campo que almacena la URL del avatar
+            avatar_url=user.avatar_url, 
             github_url=github_url  # Añadir la URL del perfil de GitHub
         )
         print(f"Added node for user: {user.username} with language: {user.dominant_language}, continent: {user.location}, stars: {user.stars}, avatar_url: {user.avatar_url}, github_url: {github_url}")
