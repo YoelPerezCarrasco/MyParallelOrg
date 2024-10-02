@@ -1,0 +1,239 @@
+# API/Instalación/Modelos - Middleware
+
+Este proyecto es una API desarrollada con FastAPI que permite gestionar usuarios y sus contribuciones a repositorios de GitHub, así como realizar autenticación y autorización basada en JWT. 
+
+## Tabla de Contenidos
+- [Instalación](#instalacion)
+- [Configuración](#configuracion)
+- [Configuración de Docker](#configuracion-de-docker)
+  - [Dockerfile](#dockerfile)
+  - [docker-compose.yml](#docker-compose)
+  - [Levantando los Servicios](#levantando-los-servicios)
+- [Modelos de Base de Datos](#modelos-de-base-de-datos)
+- [Autenticación y Autorización](#autenticacion-y-autorizacion)
+- [Endpoints](#endpoints)
+  - [Autenticación](#autenticacion)
+  - [Usuarios](#usuarios)
+  - [Organizaciones](#organizaciones)
+  - [Contribuciones y Commits](#contribuciones-y-commits)
+- [Manejo de Errores](#manejo-de-errores)
+- [Logging](#logging)
+## Instalación
+(id=instalacion)=
+
+Para instalar este proyecto, sigue los siguientes pasos:
+
+1. Clona el repositorio.
+2. Instala las dependencias necesarias:
+    ```bash
+    pip install -r requirements.txt
+    ```
+3. Configura la base de datos (ver sección [Configuración](#configuracion)).
+4. Inicia la aplicación:
+    ```bash
+    uvicorn main:app --reload
+    ```
+
+## Configuración
+(id=configuracion)=
+
+### Variables de Entorno
+
+- `SECRET_KEY`: Llave secreta utilizada para la generación de JWT.
+- `ALGORITHM`: Algoritmo utilizado para la codificación de JWT (por defecto, `HS256`).
+- `ACCESS_TOKEN_EXPIRES_MINUTES`: Tiempo de expiración del token de acceso en minutos.
+
+### Base de Datos
+
+El proyecto utiliza SQLAlchemy para la gestión de la base de datos. Las tablas son creadas automáticamente utilizando `Base.metadata.create_all(bind=engine)`.
+
+
+## Configuración de Docker
+<a id="configuracion-de-docker"></a>
+
+Este proyecto utiliza Docker para levantar un entorno de desarrollo que incluye la aplicación FastAPI, una base de datos PostgreSQL, y PgAdmin para la administración de la base de datos.
+
+### Dockerfile
+<a id="dockerfile"></a>
+
+El `Dockerfile` define la imagen Docker para la aplicación FastAPI. Aquí está el contenido del `Dockerfile`:
+
+```Dockerfile
+# Usar una imagen oficial de Python como imagen base
+FROM python:3.9-slim
+
+# Establecer el directorio de trabajo en el contenedor
+WORKDIR /app
+
+# Copiar los archivos de requisitos y instalar las dependencias
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar el resto del código fuente de la aplicación
+COPY . .
+
+# Exponer el puerto en el que uvicorn correrá
+EXPOSE 8000
+
+# Ejecutar uvicorn para servir la aplicación de FastAPI
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+``` 
+
+### Docker-Compose
+<a id="docker-compose"></a>
+
+El archivo `docker-compose.yml` se utiliza para orquestar múltiples servicios: la aplicación FastAPI, PostgreSQL, y PgAdmin.
+
+```yaml
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://user:password@db:5432/mydatabase
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: mydatabase
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
+    ports:
+      - "5050:80"
+
+volumes:
+  postgres_data:
+```
+### Levantando los Servicios
+<a id="levantando-los-servicios"></a>
+
+Para levantar todos los servicios definidos en el `docker-compose.yml`, sigue estos pasos:
+
+1. Navega al directorio donde están tus archivos `Dockerfile` y `docker-compose.yml`.
+
+2. Ejecuta el siguiente comando para construir las imágenes y levantar los contenedores:
+
+   ```bash
+   docker-compose up --build
+   ````
+Esto hará lo siguiente:
+
+- Construirá la imagen Docker para tu aplicación FastAPI.
+- Levantará los contenedores para la aplicación FastAPI, la base de datos PostgreSQL, y PgAdmin.
+
+## Acceder a la Aplicación:
+
+Una vez que los contenedores estén levantados, tu aplicación FastAPI estará disponible en [http://localhost:8000](http://localhost:8000).
+
+## Acceder a PgAdmin:
+
+Puedes acceder a PgAdmin en [http://localhost:5050](http://localhost:5050) con las credenciales proporcionadas (`admin@admin.com` / `admin`).
+
+Una vez dentro de PgAdmin, agrega un nuevo servidor con las siguientes configuraciones:
+
+- **Host:** db
+- **Username:** user
+- **Password:** password
+
+## Modelos de Base de Datos
+(id=modelos-de-base-de-datos)=
+
+### GitHubUserModel
+Modelo que representa a un usuario de GitHub en la base de datos.
+
+- `id`: ID del usuario.
+- `username`: Nombre de usuario en GitHub.
+- `html_url`: URL del perfil de GitHub.
+- `avatar_url`: URL del avatar de GitHub.
+- `repos_url`: URL de los repositorios del usuario.
+- `location`: Ubicación geográfica simulada.
+- `stars`: Número de estrellas recibidas en repositorios.
+- `dominant_language`: Lenguaje de programación dominante.
+- `organization`: Organización a la que pertenece el usuario.
+
+### UserRepoContributions
+Modelo que representa las contribuciones de un usuario a un repositorio.
+
+- `id`: ID de la contribución.
+- `user_id`: ID del usuario.
+- `repo_name`: Nombre del repositorio.
+- `contribution_count`: Número de contribuciones.
+
+### UserRepoCommits
+Modelo que representa los commits de un usuario en un repositorio.
+
+- `id`: ID del commit.
+- `user_id`: ID del usuario.
+- `repo_name`: Nombre del repositorio.
+- `commit_count`: Número de commits.
+- `last_commit_date`: Fecha del último commit.
+
+### UserModel
+Modelo que representa a un usuario en el sistema.
+
+- `id`: ID del usuario.
+- `username`: Nombre de usuario.
+- `hashed_password`: Contraseña hasheada.
+- `is_active`: Estado de actividad del usuario.
+- `is_admin`: Si el usuario es administrador.
+- `is_manager`: Si el usuario es manager.
+- `rol`: Rol del usuario.
+- `company`: Compañía a la que pertenece el usuario.
+
+## Autenticación y Autorización
+(id=autenticacion-y-autorizacion)=
+
+El proyecto utiliza OAuth2 con JWT para la autenticación de usuarios. La autenticación se maneja a través del endpoint `/login`, donde se generan tokens JWT que incluyen el rol del usuario. La autorización se maneja con dependencias que verifican el token.
+
+## Endpoints
+(id=endpoints)=
+
+### Autenticación
+(id=autenticacion)=
+
+- **POST** `/login`: Permite a los usuarios autenticarse con nombre de usuario y contraseña.
+- **POST** `/register/`: Permite registrar un nuevo usuario.
+- **POST** `/change-password`: Permite a los usuarios cambiar su contraseña actual.
+
+### Usuarios
+(id=usuarios)=
+
+- **GET** `/users/me`: Obtiene la información del usuario autenticado.
+- **GET** `/manager/users`: Obtiene la lista de usuarios para un manager autenticado.
+
+### Organizaciones
+(id=organizaciones)=
+
+- **GET** `/organizations`: Obtiene la lista de organizaciones.
+- **GET** `/org-users2/{org}`: Obtiene los usuarios y sus contribuciones en una organización específica.
+
+### Contribuciones y Commits
+(id=contribuciones-y-commits)=
+
+- **GET** `/user-connections/{org_name}`: Obtiene las conexiones de usuarios dentro de una organización.
+- **GET** `/user/connections`: Obtiene las conexiones de usuarios para la organización del usuario autenticado.
+
+## Manejo de Errores
+(id=manejo-de-errores)=
+
+Los errores son manejados a través de excepciones HTTP en FastAPI, con mensajes específicos para cada tipo de error, como autenticación fallida, credenciales inválidas, y errores en la base de datos.
+
+## Logging
+
+El proyecto utiliza `logging` para registrar actividades y errores en la aplicación. Los mensajes de log incluyen la captura de excepciones y el seguimiento de procesos importantes como la autenticación y la asignación de roles.
+
+---
+
+Este archivo proporciona una visión general del proyecto y sus componentes principales. Es importante seguir las instrucciones de instalación y configuración para ejecutar la aplicación correctamente.

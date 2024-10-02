@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="es" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Documentación del Frontend &mdash; documentación de MyParallelOrg - 0.1</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=9c9b61ad"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/translations.js?v=d190bf04"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Índice" href="genindex.html" />
+    <link rel="search" title="Búsqueda" href="search.html" />
+    <link rel="next" title="Grafo Conexiones - Backend" href="Crud.html" />
+    <link rel="prev" title="API/Instalación/Modelos - Middleware" href="Backend.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MyParallelOrg
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Buscar documentos" aria-label="Buscar documentos" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Indice</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Backend.html">API/Instalación/Modelos - Middleware</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Documentación del Frontend</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#descripcion-general">Descripción General</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#componentes-principales">Componentes Principales</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#authprovider">1. <code class="docutils literal notranslate"><span class="pre">AuthProvider</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#navbar">2. <code class="docutils literal notranslate"><span class="pre">Navbar</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#homepage">3. <code class="docutils literal notranslate"><span class="pre">Homepage</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#loginpage-y-registerpage">4. <code class="docutils literal notranslate"><span class="pre">Loginpage</span></code> y <code class="docutils literal notranslate"><span class="pre">Registerpage</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#userdashboard">5. <code class="docutils literal notranslate"><span class="pre">UserDashboard</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#managerdashboard">6. <code class="docutils literal notranslate"><span class="pre">ManagerDashboard</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#admindashboard">7. <code class="docutils literal notranslate"><span class="pre">AdminDashboard</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#userlist-createuser-edituser">8. <code class="docutils literal notranslate"><span class="pre">UserList</span></code>, <code class="docutils literal notranslate"><span class="pre">CreateUser</span></code>, <code class="docutils literal notranslate"><span class="pre">EditUser</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#usergraph">9. <code class="docutils literal notranslate"><span class="pre">UserGraph</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#setting">10. <code class="docutils literal notranslate"><span class="pre">Setting</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#rutas-de-la-aplicacion">Rutas de la Aplicación</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#rutas-protegidas">Rutas Protegidas</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rutas-publicas">Rutas Públicas</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#utilidades">Utilidades</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#privateroute">1. <code class="docutils literal notranslate"><span class="pre">PrivateRoute</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#requireadmintoken">2. <code class="docutils literal notranslate"><span class="pre">RequireAdminToken</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#requiremanagertoken">3. <code class="docutils literal notranslate"><span class="pre">RequireManagerToken</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#dependencias-importadas">Dependencias Importadas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ejemplo-de-uso">Ejemplo de Uso</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Crud.html">Grafo Conexiones - Backend</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RequestGitHub.html">Recolección API GitHub - Backend</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Schemas.html">Schema Pydantic - Backend</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Database.html">Conexion BD - Backend</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MyParallelOrg</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Documentación del Frontend</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/CentroVistas.md.txt" rel="nofollow"> Ver código fuente de la página</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="documentacion-del-frontend">
+<h1>Documentación del Frontend<a class="headerlink" href="#documentacion-del-frontend" title="Link to this heading"></a></h1>
+<section id="descripcion-general">
+<h2>Descripción General<a class="headerlink" href="#descripcion-general" title="Link to this heading"></a></h2>
+<p>Este documento describe la estructura y funcionamiento del frontend de la aplicación, implementado en React. El código se organiza en componentes, rutas, y utilidades para gestionar la autenticación y los permisos de acceso.</p>
+</section>
+<section id="componentes-principales">
+<h2>Componentes Principales<a class="headerlink" href="#componentes-principales" title="Link to this heading"></a></h2>
+<section id="authprovider">
+<h3>1. <code class="docutils literal notranslate"><span class="pre">AuthProvider</span></code><a class="headerlink" href="#authprovider" title="Link to this heading"></a></h3>
+<p>Este componente provee el contexto de autenticación para toda la aplicación. Envuelve todos los componentes dentro del árbol de componentes, permitiendo que cualquier componente pueda acceder al estado de autenticación.</p>
+</section>
+<section id="navbar">
+<h3>2. <code class="docutils literal notranslate"><span class="pre">Navbar</span></code><a class="headerlink" href="#navbar" title="Link to this heading"></a></h3>
+<p>El componente de navegación que se muestra en todas las páginas de la aplicación. Es responsable de mostrar enlaces a las diferentes rutas disponibles.</p>
+</section>
+<section id="homepage">
+<h3>3. <code class="docutils literal notranslate"><span class="pre">Homepage</span></code><a class="headerlink" href="#homepage" title="Link to this heading"></a></h3>
+<p>La página principal de la aplicación. Es la primera vista que los usuarios verán al acceder a la ruta base (<code class="docutils literal notranslate"><span class="pre">/</span></code>).</p>
+</section>
+<section id="loginpage-y-registerpage">
+<h3>4. <code class="docutils literal notranslate"><span class="pre">Loginpage</span></code> y <code class="docutils literal notranslate"><span class="pre">Registerpage</span></code><a class="headerlink" href="#loginpage-y-registerpage" title="Link to this heading"></a></h3>
+<p>Estas vistas gestionan el inicio de sesión y el registro de nuevos usuarios, respectivamente.</p>
+</section>
+<section id="userdashboard">
+<h3>5. <code class="docutils literal notranslate"><span class="pre">UserDashboard</span></code><a class="headerlink" href="#userdashboard" title="Link to this heading"></a></h3>
+<p>Panel de usuario accesible para usuarios autenticados.</p>
+</section>
+<section id="managerdashboard">
+<h3>6. <code class="docutils literal notranslate"><span class="pre">ManagerDashboard</span></code><a class="headerlink" href="#managerdashboard" title="Link to this heading"></a></h3>
+<p>Panel de control accesible solo para usuarios con rol de Manager. Protegido por el componente <code class="docutils literal notranslate"><span class="pre">RequireManagerToken</span></code>.</p>
+</section>
+<section id="admindashboard">
+<h3>7. <code class="docutils literal notranslate"><span class="pre">AdminDashboard</span></code><a class="headerlink" href="#admindashboard" title="Link to this heading"></a></h3>
+<p>Panel de control para administradores. Protegido por el componente <code class="docutils literal notranslate"><span class="pre">RequireAdminToken</span></code>.</p>
+</section>
+<section id="userlist-createuser-edituser">
+<h3>8. <code class="docutils literal notranslate"><span class="pre">UserList</span></code>, <code class="docutils literal notranslate"><span class="pre">CreateUser</span></code>, <code class="docutils literal notranslate"><span class="pre">EditUser</span></code><a class="headerlink" href="#userlist-createuser-edituser" title="Link to this heading"></a></h3>
+<p>Estas vistas están relacionadas con la gestión de usuarios:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">UserList</span></code>: Muestra una lista de usuarios.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CreateUser</span></code>: Permite la creación de un nuevo usuario.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">EditUser</span></code>: Permite editar un usuario existente.</p></li>
+</ul>
+</section>
+<section id="usergraph">
+<h3>9. <code class="docutils literal notranslate"><span class="pre">UserGraph</span></code><a class="headerlink" href="#usergraph" title="Link to this heading"></a></h3>
+<p>Componente que visualiza gráficos relacionados con la organización seleccionada. La ruta captura un parámetro <code class="docutils literal notranslate"><span class="pre">organization</span></code> para filtrar los datos que se muestran.</p>
+</section>
+<section id="setting">
+<h3>10. <code class="docutils literal notranslate"><span class="pre">Setting</span></code><a class="headerlink" href="#setting" title="Link to this heading"></a></h3>
+<p>Página de configuración para el usuario autenticado.</p>
+</section>
+</section>
+<section id="rutas-de-la-aplicacion">
+<h2>Rutas de la Aplicación<a class="headerlink" href="#rutas-de-la-aplicacion" title="Link to this heading"></a></h2>
+<section id="rutas-protegidas">
+<h3>Rutas Protegidas<a class="headerlink" href="#rutas-protegidas" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">/user/dashboard</span></code></strong>: Muestra el panel de usuario. Protegido por autenticación básica.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">/manager/dashboard</span></code></strong>: Muestra el panel de manager. Protegido por <code class="docutils literal notranslate"><span class="pre">RequireManagerToken</span></code>.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">/admin/dashboard</span></code></strong>: Muestra el panel de administrador. Protegido por <code class="docutils literal notranslate"><span class="pre">RequireAdminToken</span></code>.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">/admin/users</span></code></strong>: Lista de usuarios, accesible solo para administradores.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">/admin/users/create</span></code></strong>: Formulario para crear un nuevo usuario, accesible solo para administradores.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">/admin/users/edit/:id</span></code></strong>: Formulario para editar un usuario existente. Accesible solo para administradores.</p></li>
+</ul>
+</section>
+<section id="rutas-publicas">
+<h3>Rutas Públicas<a class="headerlink" href="#rutas-publicas" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">/graphs/:organization</span></code></strong>: Muestra gráficos basados en la organización seleccionada.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">/login</span></code></strong>: Página de inicio de sesión.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">/register</span></code></strong>: Página de registro.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">/settings</span></code></strong>: Página de configuración del usuario.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">/</span></code></strong>: Página de inicio.</p></li>
+</ul>
+</section>
+</section>
+<section id="utilidades">
+<h2>Utilidades<a class="headerlink" href="#utilidades" title="Link to this heading"></a></h2>
+<section id="privateroute">
+<h3>1. <code class="docutils literal notranslate"><span class="pre">PrivateRoute</span></code><a class="headerlink" href="#privateroute" title="Link to this heading"></a></h3>
+<p>Componente de utilidad para proteger rutas que requieren autenticación.</p>
+</section>
+<section id="requireadmintoken">
+<h3>2. <code class="docutils literal notranslate"><span class="pre">RequireAdminToken</span></code><a class="headerlink" href="#requireadmintoken" title="Link to this heading"></a></h3>
+<p>Componente de utilidad para proteger rutas que requieren que el usuario sea administrador.</p>
+</section>
+<section id="requiremanagertoken">
+<h3>3. <code class="docutils literal notranslate"><span class="pre">RequireManagerToken</span></code><a class="headerlink" href="#requiremanagertoken" title="Link to this heading"></a></h3>
+<p>Componente de utilidad para proteger rutas que requieren que el usuario sea un manager.</p>
+</section>
+</section>
+<section id="dependencias-importadas">
+<h2>Dependencias Importadas<a class="headerlink" href="#dependencias-importadas" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Bootstrap</strong>: Utilizado para el diseño y los estilos CSS.</p></li>
+<li><p><strong>React Router DOM</strong>: Utilizado para la gestión de rutas y la navegación.</p></li>
+</ul>
+</section>
+<section id="ejemplo-de-uso">
+<h2>Ejemplo de Uso<a class="headerlink" href="#ejemplo-de-uso" title="Link to this heading"></a></h2>
+<p>El archivo <code class="docutils literal notranslate"><span class="pre">App.tsx</span></code> o <code class="docutils literal notranslate"><span class="pre">App.jsx</span></code> centraliza la configuración de rutas y la estructura principal de la aplicación, envolviendo todo en el <code class="docutils literal notranslate"><span class="pre">AuthProvider</span></code> para que los estados de autenticación y autorización estén disponibles en toda la aplicación.</p>
+<div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="k">import</span><span class="w"> </span><span class="nx">React</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;react&#39;</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Route</span><span class="p">,</span><span class="w"> </span><span class="nx">Routes</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;react-router-dom&#39;</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">AuthProvider</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./context/AuthContext&#39;</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="nx">Homepage</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;./views/Home&#39;</span><span class="p">;</span>
+<span class="c1">// Importación de otros componentes...</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">App</span><span class="o">:</span><span class="w"> </span><span class="nx">React</span><span class="p">.</span><span class="nx">FC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="nx">AuthProvider</span><span class="o">&gt;</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="nx">Navbar</span><span class="w"> </span><span class="o">/&gt;</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="nx">Routes</span><span class="o">&gt;</span>
+<span class="w">        </span><span class="p">{</span><span class="cm">/* Definición de rutas... */</span><span class="p">}</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="err">/Routes&gt;</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="err">/AuthProvider&gt;</span>
+<span class="w">  </span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">export</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="nx">App</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Este archivo es el punto de entrada de la aplicación, donde se configuran todas las rutas y se especifican los componentes que se renderizarán para cada ruta.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pie de página">
+        <a href="Backend.html" class="btn btn-neutral float-left" title="API/Instalación/Modelos - Middleware" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Anterior</a>
+        <a href="Crud.html" class="btn btn-neutral float-right" title="Grafo Conexiones - Backend" accesskey="n" rel="next">Siguiente <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Derechos de autor 2024, Yoel Perez Carrasco.</p>
+  </div>
+
+  Compilado con <a href="https://www.sphinx-doc.org/">Sphinx</a> usando un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    proporcionado por <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

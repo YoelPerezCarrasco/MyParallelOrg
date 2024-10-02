@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="es" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conexion BD - Backend &mdash; documentación de MyParallelOrg - 0.1</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=9c9b61ad"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/translations.js?v=d190bf04"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Índice" href="genindex.html" />
+    <link rel="search" title="Búsqueda" href="search.html" />
+    <link rel="prev" title="Schema Pydantic - Backend" href="Schemas.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MyParallelOrg
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Buscar documentos" aria-label="Buscar documentos" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Indice</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Backend.html">API/Instalación/Modelos - Middleware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Crud.html">Grafo Conexiones - Backend</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RequestGitHub.html">Recolección API GitHub - Backend</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Schemas.html">Schema Pydantic - Backend</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Conexion BD - Backend</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#importaciones">Importaciones</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#descripcion-de-funciones-y-modulos">Descripción de Funciones y Módulos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuracion-de-la-url-de-la-base-de-datos">Configuración de la URL de la Base de Datos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id1">Configuración de la URL de la Base de Datos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#manejo-condicional-de-la-conexion-al-construir-con-sphinx">Manejo Condicional de la Conexión al Construir con Sphinx</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#creacion-de-la-sesion-de-base-de-datos">Creación de la Sesión de Base de Datos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#funcion-get-db">Función <code class="docutils literal notranslate"><span class="pre">get_db</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MyParallelOrg</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Conexion BD - Backend</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Database.md.txt" rel="nofollow"> Ver código fuente de la página</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="conexion-bd-backend">
+<h1>Conexion BD - Backend<a class="headerlink" href="#conexion-bd-backend" title="Link to this heading"></a></h1>
+<p>Este documento describe el código Python utilizado para configurar la conexión a una base de datos PostgreSQL utilizando SQLAlchemy, así como la creación de una sesión de base de datos y el manejo de la sesión dentro de un contexto gestionado.</p>
+<section id="importaciones">
+<h2>Importaciones<a class="headerlink" href="#importaciones" title="Link to this heading"></a></h2>
+<p>El código realiza las siguientes importaciones principales:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">sessionmaker</span>
+<span class="kn">import</span> <span class="nn">os</span>
+</pre></div>
+</div>
+</section>
+<section id="descripcion-de-funciones-y-modulos">
+<h2>Descripción de Funciones y Módulos<a class="headerlink" href="#descripcion-de-funciones-y-modulos" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">create_engine</span></code></strong>: Función de SQLAlchemy utilizada para configurar la conexión a la base de datos.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">declarative_base</span></code></strong>: Función que devuelve una clase base para la definición de modelos en SQLAlchemy.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">sessionmaker</span></code></strong>: Función que crea una clase para instanciar sesiones de base de datos.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">os</span></code></strong>: Módulo estándar de Python utilizado para interactuar con el sistema operativo, en este caso, para obtener variables de entorno.</p></li>
+</ul>
+</section>
+<section id="configuracion-de-la-url-de-la-base-de-datos">
+<h2>Configuración de la URL de la Base de Datos<a class="headerlink" href="#configuracion-de-la-url-de-la-base-de-datos" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">SQLALCHEMY_DATABASE_URL</span> <span class="o">=</span> <span class="s2">&quot;postgresql://user:password@db:5432/mydatabase&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="id1">
+<h2>Configuración de la URL de la Base de Datos<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">SQLALCHEMY_DATABASE_URL</span></code> es una cadena de conexión que especifica la URL para conectarse a la base de datos PostgreSQL. Debe ser reemplazada con los valores correspondientes para el usuario (<code class="docutils literal notranslate"><span class="pre">user</span></code>), contraseña (<code class="docutils literal notranslate"><span class="pre">password</span></code>), host (en este caso <code class="docutils literal notranslate"><span class="pre">db</span></code>), y el nombre de la base de datos (<code class="docutils literal notranslate"><span class="pre">mydatabase</span></code>).</p>
+</section>
+<section id="manejo-condicional-de-la-conexion-al-construir-con-sphinx">
+<h2>Manejo Condicional de la Conexión al Construir con Sphinx<a class="headerlink" href="#manejo-condicional-de-la-conexion-al-construir-con-sphinx" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;SPHINX_BUILD&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span><span class="p">:</span>
+    <span class="n">engine</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># O cualquier otra cosa que no inicie la conexión real</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span>
+    <span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">SQLALCHEMY_DATABASE_URL</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Este bloque de código verifica si se está ejecutando un proceso de construcción de documentación con Sphinx, lo cual se determina mediante la variable de entorno <code class="docutils literal notranslate"><span class="pre">SPHINX_BUILD</span></code>. Si la variable está configurada como <code class="docutils literal notranslate"><span class="pre">true</span></code>, la variable <code class="docutils literal notranslate"><span class="pre">engine</span></code> se establece en <code class="docutils literal notranslate"><span class="pre">None</span></code> para evitar que se inicie una conexión real a la base de datos durante la construcción de la documentación. En caso contrario, se crea la conexión a la base de datos utilizando <code class="docutils literal notranslate"><span class="pre">create_engine</span></code>.</p>
+</section>
+<section id="creacion-de-la-sesion-de-base-de-datos">
+<h2>Creación de la Sesión de Base de Datos<a class="headerlink" href="#creacion-de-la-sesion-de-base-de-datos" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">SessionLocal</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">autocommit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">autoflush</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>
+<span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
+
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">SessionLocal</span></code></strong>: Se crea una clase para las sesiones de base de datos utilizando <code class="docutils literal notranslate"><span class="pre">sessionmaker</span></code>. Esta clase se configura para que no realice <code class="docutils literal notranslate"><span class="pre">autocommit</span></code> ni <code class="docutils literal notranslate"><span class="pre">autoflush</span></code> de manera automática.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">Base</span></code></strong>: Es una clase base que se utiliza como fundamento para definir las clases de los modelos de datos.</p></li>
+</ul>
+</section>
+<section id="funcion-get-db">
+<h2>Función <code class="docutils literal notranslate"><span class="pre">get_db</span></code><a class="headerlink" href="#funcion-get-db" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_db</span><span class="p">():</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">SessionLocal</span><span class="p">()</span>
+    <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">db</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Esta función genera una sesión de base de datos que puede ser utilizada dentro de un contexto controlado:</p>
+<ul class="simple">
+<li><p>Se instancia una sesión (<code class="docutils literal notranslate"><span class="pre">db</span></code>) utilizando <code class="docutils literal notranslate"><span class="pre">SessionLocal</span></code>.</p></li>
+<li><p>Se asegura de que todas las tablas definidas en los modelos se creen en la base de datos.</p></li>
+<li><p>La función utiliza <code class="docutils literal notranslate"><span class="pre">yield</span></code> para proporcionar la sesión al código que lo requiere, permitiendo así la ejecución dentro de un contexto gestionado.</p></li>
+<li><p>Finalmente, garantiza que la sesión se cierre correctamente después de su uso.</p></li>
+</ul>
+<p>Este patrón es útil en aplicaciones web, donde se necesita gestionar las sesiones de base de datos de manera eficiente, asegurando la creación de las tablas necesarias y la correcta liberación de los recursos.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pie de página">
+        <a href="Schemas.html" class="btn btn-neutral float-left" title="Schema Pydantic - Backend" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Anterior</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Derechos de autor 2024, Yoel Perez Carrasco.</p>
+  </div>
+
+  Compilado con <a href="https://www.sphinx-doc.org/">Sphinx</a> usando un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    proporcionado por <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

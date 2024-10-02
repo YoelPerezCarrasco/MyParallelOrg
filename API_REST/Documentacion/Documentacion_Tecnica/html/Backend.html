@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="es" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API/Instalación/Modelos - Middleware &mdash; documentación de MyParallelOrg - 0.1</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=9c9b61ad"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/translations.js?v=d190bf04"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Índice" href="genindex.html" />
+    <link rel="search" title="Búsqueda" href="search.html" />
+    <link rel="next" title="Grafo Conexiones - Backend" href="Crud.html" />
+    <link rel="prev" title="Documentación MyParallelOrg" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MyParallelOrg
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Buscar documentos" aria-label="Buscar documentos" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Indice</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API/Instalación/Modelos - Middleware</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#tabla-de-contenidos">Tabla de Contenidos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#instalacion">Instalación</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuracion">Configuración</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#variables-de-entorno">Variables de Entorno</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#base-de-datos">Base de Datos</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#configuracion-de-docker">Configuración de Docker</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#dockerfile">Dockerfile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#docker-compose">Docker-Compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#levantando-los-servicios">Levantando los Servicios</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#acceder-a-la-aplicacion">Acceder a la Aplicación:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#acceder-a-pgadmin">Acceder a PgAdmin:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#modelos-de-base-de-datos">Modelos de Base de Datos</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#githubusermodel">GitHubUserModel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#userrepocontributions">UserRepoContributions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#userrepocommits">UserRepoCommits</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#usermodel">UserModel</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#autenticacion-y-autorizacion">Autenticación y Autorización</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#endpoints">Endpoints</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#autenticacion">Autenticación</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#usuarios">Usuarios</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#organizaciones">Organizaciones</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#contribuciones-y-commits">Contribuciones y Commits</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#manejo-de-errores">Manejo de Errores</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#logging">Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Crud.html">Grafo Conexiones - Backend</a></li>
+<li class="toctree-l1"><a class="reference internal" href="RequestGitHub.html">Recolección API GitHub - Backend</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Schemas.html">Schema Pydantic - Backend</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Database.html">Conexion BD - Backend</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MyParallelOrg</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API/Instalación/Modelos - Middleware</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Backend.md.txt" rel="nofollow"> Ver código fuente de la página</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api-instalacion-modelos-middleware">
+<h1>API/Instalación/Modelos - Middleware<a class="headerlink" href="#api-instalacion-modelos-middleware" title="Link to this heading"></a></h1>
+<p>Este proyecto es una API desarrollada con FastAPI que permite gestionar usuarios y sus contribuciones a repositorios de GitHub, así como realizar autenticación y autorización basada en JWT.</p>
+<section id="tabla-de-contenidos">
+<h2>Tabla de Contenidos<a class="headerlink" href="#tabla-de-contenidos" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="#instalacion"><span class="xref myst">Instalación</span></a></p></li>
+<li><p><a class="reference internal" href="#configuracion"><span class="xref myst">Configuración</span></a></p></li>
+<li><p><a class="reference internal" href="#configuracion-de-docker"><span class="xref myst">Configuración de Docker</span></a></p>
+<ul>
+<li><p><a class="reference internal" href="#dockerfile"><span class="xref myst">Dockerfile</span></a></p></li>
+<li><p><a class="reference internal" href="#docker-compose"><span class="xref myst">docker-compose.yml</span></a></p></li>
+<li><p><a class="reference internal" href="#levantando-los-servicios"><span class="xref myst">Levantando los Servicios</span></a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#modelos-de-base-de-datos"><span class="xref myst">Modelos de Base de Datos</span></a></p></li>
+<li><p><a class="reference internal" href="#autenticacion-y-autorizacion"><span class="xref myst">Autenticación y Autorización</span></a></p></li>
+<li><p><a class="reference internal" href="#endpoints"><span class="xref myst">Endpoints</span></a></p>
+<ul>
+<li><p><a class="reference internal" href="#autenticacion"><span class="xref myst">Autenticación</span></a></p></li>
+<li><p><a class="reference internal" href="#usuarios"><span class="xref myst">Usuarios</span></a></p></li>
+<li><p><a class="reference internal" href="#organizaciones"><span class="xref myst">Organizaciones</span></a></p></li>
+<li><p><a class="reference internal" href="#contribuciones-y-commits"><span class="xref myst">Contribuciones y Commits</span></a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#manejo-de-errores"><span class="xref myst">Manejo de Errores</span></a></p></li>
+<li><p><a class="reference internal" href="#logging"><span class="xref myst">Logging</span></a></p></li>
+</ul>
+</section>
+<section id="instalacion">
+<h2>Instalación<a class="headerlink" href="#instalacion" title="Link to this heading"></a></h2>
+<p id="id-instalacion">Para instalar este proyecto, sigue los siguientes pasos:</p>
+<ol class="arabic">
+<li><p>Clona el repositorio.</p></li>
+<li><p>Instala las dependencias necesarias:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</pre></div>
+</div>
+</li>
+<li><p>Configura la base de datos (ver sección <a class="reference internal" href="#configuracion"><span class="xref myst">Configuración</span></a>).</p></li>
+<li><p>Inicia la aplicación:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uvicorn<span class="w"> </span>main:app<span class="w"> </span>--reload
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="configuracion">
+<h2>Configuración<a class="headerlink" href="#configuracion" title="Link to this heading"></a></h2>
+<section id="variables-de-entorno">
+<span id="id-configuracion"></span><h3>Variables de Entorno<a class="headerlink" href="#variables-de-entorno" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SECRET_KEY</span></code>: Llave secreta utilizada para la generación de JWT.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ALGORITHM</span></code>: Algoritmo utilizado para la codificación de JWT (por defecto, <code class="docutils literal notranslate"><span class="pre">HS256</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ACCESS_TOKEN_EXPIRES_MINUTES</span></code>: Tiempo de expiración del token de acceso en minutos.</p></li>
+</ul>
+</section>
+<section id="base-de-datos">
+<h3>Base de Datos<a class="headerlink" href="#base-de-datos" title="Link to this heading"></a></h3>
+<p>El proyecto utiliza SQLAlchemy para la gestión de la base de datos. Las tablas son creadas automáticamente utilizando <code class="docutils literal notranslate"><span class="pre">Base.metadata.create_all(bind=engine)</span></code>.</p>
+</section>
+</section>
+<section id="configuracion-de-docker">
+<h2>Configuración de Docker<a class="headerlink" href="#configuracion-de-docker" title="Link to this heading"></a></h2>
+<p><a id="configuracion-de-docker"></a></p>
+<p>Este proyecto utiliza Docker para levantar un entorno de desarrollo que incluye la aplicación FastAPI, una base de datos PostgreSQL, y PgAdmin para la administración de la base de datos.</p>
+<section id="dockerfile">
+<h3>Dockerfile<a class="headerlink" href="#dockerfile" title="Link to this heading"></a></h3>
+<p><a id="dockerfile"></a></p>
+<p>El <code class="docutils literal notranslate"><span class="pre">Dockerfile</span></code> define la imagen Docker para la aplicación FastAPI. Aquí está el contenido del <code class="docutils literal notranslate"><span class="pre">Dockerfile</span></code>:</p>
+<div class="highlight-Dockerfile notranslate"><div class="highlight"><pre><span></span><span class="c"># Usar una imagen oficial de Python como imagen base</span>
+<span class="k">FROM</span><span class="w"> </span><span class="s">python:3.9-slim</span>
+
+<span class="c"># Establecer el directorio de trabajo en el contenedor</span>
+<span class="k">WORKDIR</span><span class="w"> </span><span class="s">/app</span>
+
+<span class="c"># Copiar los archivos de requisitos y instalar las dependencias</span>
+<span class="k">COPY</span><span class="w"> </span>requirements.txt<span class="w"> </span>.
+<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+
+<span class="c"># Copiar el resto del código fuente de la aplicación</span>
+<span class="k">COPY</span><span class="w"> </span>.<span class="w"> </span>.
+
+<span class="c"># Exponer el puerto en el que uvicorn correrá</span>
+<span class="k">EXPOSE</span><span class="w"> </span><span class="s">8000</span>
+
+<span class="c"># Ejecutar uvicorn para servir la aplicación de FastAPI</span>
+<span class="k">CMD</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;uvicorn&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;backend.main:app&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--host&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;0.0.0.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--port&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;8000&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="docker-compose">
+<h3>Docker-Compose<a class="headerlink" href="#docker-compose" title="Link to this heading"></a></h3>
+<p><a id="docker-compose"></a></p>
+<p>El archivo <code class="docutils literal notranslate"><span class="pre">docker-compose.yml</span></code> se utiliza para orquestar múltiples servicios: la aplicación FastAPI, PostgreSQL, y PgAdmin.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3.8&#39;</span>
+<span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">app</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">build</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+<span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;8000:8000&quot;</span>
+<span class="w">    </span><span class="nt">depends_on</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">db</span>
+<span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">DATABASE_URL</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">postgresql://user:password@db:5432/mydatabase</span>
+
+<span class="w">  </span><span class="nt">db</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">postgres:latest</span>
+<span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">POSTGRES_DB</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mydatabase</span>
+<span class="w">      </span><span class="nt">POSTGRES_USER</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user</span>
+<span class="w">      </span><span class="nt">POSTGRES_PASSWORD</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">password</span>
+<span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">postgres_data:/var/lib/postgresql/data</span>
+
+<span class="w">  </span><span class="nt">pgadmin</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dpage/pgadmin4</span>
+<span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">PGADMIN_DEFAULT_EMAIL</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;admin@admin.com&quot;</span>
+<span class="w">      </span><span class="nt">PGADMIN_DEFAULT_PASSWORD</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;admin&quot;</span>
+<span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;5050:80&quot;</span>
+
+<span class="nt">volumes</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">postgres_data</span><span class="p">:</span>
+</pre></div>
+</div>
+</section>
+<section id="levantando-los-servicios">
+<h3>Levantando los Servicios<a class="headerlink" href="#levantando-los-servicios" title="Link to this heading"></a></h3>
+<p><a id="levantando-los-servicios"></a></p>
+<p>Para levantar todos los servicios definidos en el <code class="docutils literal notranslate"><span class="pre">docker-compose.yml</span></code>, sigue estos pasos:</p>
+<ol class="arabic">
+<li><p>Navega al directorio donde están tus archivos <code class="docutils literal notranslate"><span class="pre">Dockerfile</span></code> y <code class="docutils literal notranslate"><span class="pre">docker-compose.yml</span></code>.</p></li>
+<li><p>Ejecuta el siguiente comando para construir las imágenes y levantar los contenedores:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose<span class="w"> </span>up<span class="w"> </span>--build
+</pre></div>
+</div>
+</li>
+</ol>
+<p>Esto hará lo siguiente:</p>
+<ul class="simple">
+<li><p>Construirá la imagen Docker para tu aplicación FastAPI.</p></li>
+<li><p>Levantará los contenedores para la aplicación FastAPI, la base de datos PostgreSQL, y PgAdmin.</p></li>
+</ul>
+</section>
+</section>
+<section id="acceder-a-la-aplicacion">
+<h2>Acceder a la Aplicación:<a class="headerlink" href="#acceder-a-la-aplicacion" title="Link to this heading"></a></h2>
+<p>Una vez que los contenedores estén levantados, tu aplicación FastAPI estará disponible en <a class="reference external" href="http://localhost:8000">http://localhost:8000</a>.</p>
+</section>
+<section id="acceder-a-pgadmin">
+<h2>Acceder a PgAdmin:<a class="headerlink" href="#acceder-a-pgadmin" title="Link to this heading"></a></h2>
+<p>Puedes acceder a PgAdmin en <a class="reference external" href="http://localhost:5050">http://localhost:5050</a> con las credenciales proporcionadas (<code class="docutils literal notranslate"><span class="pre">admin&#64;admin.com</span></code> / <code class="docutils literal notranslate"><span class="pre">admin</span></code>).</p>
+<p>Una vez dentro de PgAdmin, agrega un nuevo servidor con las siguientes configuraciones:</p>
+<ul class="simple">
+<li><p><strong>Host:</strong> db</p></li>
+<li><p><strong>Username:</strong> user</p></li>
+<li><p><strong>Password:</strong> password</p></li>
+</ul>
+</section>
+<section id="modelos-de-base-de-datos">
+<h2>Modelos de Base de Datos<a class="headerlink" href="#modelos-de-base-de-datos" title="Link to this heading"></a></h2>
+<section id="githubusermodel">
+<span id="id-modelos-de-base-de-datos"></span><h3>GitHubUserModel<a class="headerlink" href="#githubusermodel" title="Link to this heading"></a></h3>
+<p>Modelo que representa a un usuario de GitHub en la base de datos.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id</span></code>: ID del usuario.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">username</span></code>: Nombre de usuario en GitHub.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">html_url</span></code>: URL del perfil de GitHub.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">avatar_url</span></code>: URL del avatar de GitHub.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">repos_url</span></code>: URL de los repositorios del usuario.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">location</span></code>: Ubicación geográfica simulada.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stars</span></code>: Número de estrellas recibidas en repositorios.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dominant_language</span></code>: Lenguaje de programación dominante.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">organization</span></code>: Organización a la que pertenece el usuario.</p></li>
+</ul>
+</section>
+<section id="userrepocontributions">
+<h3>UserRepoContributions<a class="headerlink" href="#userrepocontributions" title="Link to this heading"></a></h3>
+<p>Modelo que representa las contribuciones de un usuario a un repositorio.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id</span></code>: ID de la contribución.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code>: ID del usuario.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">repo_name</span></code>: Nombre del repositorio.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">contribution_count</span></code>: Número de contribuciones.</p></li>
+</ul>
+</section>
+<section id="userrepocommits">
+<h3>UserRepoCommits<a class="headerlink" href="#userrepocommits" title="Link to this heading"></a></h3>
+<p>Modelo que representa los commits de un usuario en un repositorio.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id</span></code>: ID del commit.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code>: ID del usuario.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">repo_name</span></code>: Nombre del repositorio.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">commit_count</span></code>: Número de commits.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">last_commit_date</span></code>: Fecha del último commit.</p></li>
+</ul>
+</section>
+<section id="usermodel">
+<h3>UserModel<a class="headerlink" href="#usermodel" title="Link to this heading"></a></h3>
+<p>Modelo que representa a un usuario en el sistema.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">id</span></code>: ID del usuario.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">username</span></code>: Nombre de usuario.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hashed_password</span></code>: Contraseña hasheada.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_active</span></code>: Estado de actividad del usuario.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_admin</span></code>: Si el usuario es administrador.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_manager</span></code>: Si el usuario es manager.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rol</span></code>: Rol del usuario.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">company</span></code>: Compañía a la que pertenece el usuario.</p></li>
+</ul>
+</section>
+</section>
+<section id="autenticacion-y-autorizacion">
+<h2>Autenticación y Autorización<a class="headerlink" href="#autenticacion-y-autorizacion" title="Link to this heading"></a></h2>
+<p id="id-autenticacion-y-autorizacion">El proyecto utiliza OAuth2 con JWT para la autenticación de usuarios. La autenticación se maneja a través del endpoint <code class="docutils literal notranslate"><span class="pre">/login</span></code>, donde se generan tokens JWT que incluyen el rol del usuario. La autorización se maneja con dependencias que verifican el token.</p>
+</section>
+<section id="endpoints">
+<h2>Endpoints<a class="headerlink" href="#endpoints" title="Link to this heading"></a></h2>
+<section id="autenticacion">
+<span id="id-endpoints"></span><h3>Autenticación<a class="headerlink" href="#autenticacion" title="Link to this heading"></a></h3>
+<ul class="simple" id="id-autenticacion">
+<li><p><strong>POST</strong> <code class="docutils literal notranslate"><span class="pre">/login</span></code>: Permite a los usuarios autenticarse con nombre de usuario y contraseña.</p></li>
+<li><p><strong>POST</strong> <code class="docutils literal notranslate"><span class="pre">/register/</span></code>: Permite registrar un nuevo usuario.</p></li>
+<li><p><strong>POST</strong> <code class="docutils literal notranslate"><span class="pre">/change-password</span></code>: Permite a los usuarios cambiar su contraseña actual.</p></li>
+</ul>
+</section>
+<section id="usuarios">
+<h3>Usuarios<a class="headerlink" href="#usuarios" title="Link to this heading"></a></h3>
+<ul class="simple" id="id-usuarios">
+<li><p><strong>GET</strong> <code class="docutils literal notranslate"><span class="pre">/users/me</span></code>: Obtiene la información del usuario autenticado.</p></li>
+<li><p><strong>GET</strong> <code class="docutils literal notranslate"><span class="pre">/manager/users</span></code>: Obtiene la lista de usuarios para un manager autenticado.</p></li>
+</ul>
+</section>
+<section id="organizaciones">
+<h3>Organizaciones<a class="headerlink" href="#organizaciones" title="Link to this heading"></a></h3>
+<ul class="simple" id="id-organizaciones">
+<li><p><strong>GET</strong> <code class="docutils literal notranslate"><span class="pre">/organizations</span></code>: Obtiene la lista de organizaciones.</p></li>
+<li><p><strong>GET</strong> <code class="docutils literal notranslate"><span class="pre">/org-users2/{org}</span></code>: Obtiene los usuarios y sus contribuciones en una organización específica.</p></li>
+</ul>
+</section>
+<section id="contribuciones-y-commits">
+<h3>Contribuciones y Commits<a class="headerlink" href="#contribuciones-y-commits" title="Link to this heading"></a></h3>
+<ul class="simple" id="id-contribuciones-y-commits">
+<li><p><strong>GET</strong> <code class="docutils literal notranslate"><span class="pre">/user-connections/{org_name}</span></code>: Obtiene las conexiones de usuarios dentro de una organización.</p></li>
+<li><p><strong>GET</strong> <code class="docutils literal notranslate"><span class="pre">/user/connections</span></code>: Obtiene las conexiones de usuarios para la organización del usuario autenticado.</p></li>
+</ul>
+</section>
+</section>
+<section id="manejo-de-errores">
+<h2>Manejo de Errores<a class="headerlink" href="#manejo-de-errores" title="Link to this heading"></a></h2>
+<p id="id-manejo-de-errores">Los errores son manejados a través de excepciones HTTP en FastAPI, con mensajes específicos para cada tipo de error, como autenticación fallida, credenciales inválidas, y errores en la base de datos.</p>
+</section>
+<section id="logging">
+<h2>Logging<a class="headerlink" href="#logging" title="Link to this heading"></a></h2>
+<p>El proyecto utiliza <code class="docutils literal notranslate"><span class="pre">logging</span></code> para registrar actividades y errores en la aplicación. Los mensajes de log incluyen la captura de excepciones y el seguimiento de procesos importantes como la autenticación y la asignación de roles.</p>
+<hr class="docutils" />
+<p>Este archivo proporciona una visión general del proyecto y sus componentes principales. Es importante seguir las instrucciones de instalación y configuración para ejecutar la aplicación correctamente.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pie de página">
+        <a href="index.html" class="btn btn-neutral float-left" title="Documentación MyParallelOrg" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Anterior</a>
+        <a href="Crud.html" class="btn btn-neutral float-right" title="Grafo Conexiones - Backend" accesskey="n" rel="next">Siguiente <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Derechos de autor 2024, Yoel Perez Carrasco.</p>
+  </div>
+
+  Compilado con <a href="https://www.sphinx-doc.org/">Sphinx</a> usando un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    proporcionado por <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

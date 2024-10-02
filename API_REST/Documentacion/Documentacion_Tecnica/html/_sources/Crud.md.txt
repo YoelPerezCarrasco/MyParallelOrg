@@ -1,0 +1,101 @@
+# Grafo Conexiones - Backend
+
+Este documento explica el funcionamiento del código que se encarga de construir un grafo de usuarios en base a ciertos criterios. El código utiliza la biblioteca `networkx` para manejar grafos y SQLAlchemy para interactuar con la base de datos.
+
+## Descripción General
+
+El objetivo principal de este código es construir un grafo en el que cada nodo representa un usuario de GitHub, y las conexiones (aristas) entre nodos se basan en criterios de similitud entre los usuarios. El grafo resultante puede ser utilizado para visualizar y analizar las conexiones entre usuarios dentro de una organización específica.
+
+## Dependencias
+
+Este código depende de las siguientes bibliotecas:
+
+- `networkx`: Utilizada para la creación y manipulación de grafos.
+- `SQLAlchemy`: Utilizada para la interacción con la base de datos.
+- `backend.models.GitHubUserModel`: El modelo que representa a un usuario de GitHub en la base de datos.
+
+## Código
+
+```python
+import networkx as nx
+from sqlalchemy.orm import Session
+from backend.models import GitHubUserModel
+
+def build_user_graph(db: Session, org_name: str):
+    G = nx.Graph()
+    
+    # Filtrar usuarios por organización y no tener valores nulos en `dominant_language`, `location`, `stars`
+    users = db.query(GitHubUserModel).filter(
+        GitHubUserModel.organization == org_name,
+        GitHubUserModel.dominant_language.isnot(None),
+        GitHubUserModel.location.isnot(None),
+        GitHubUserModel.stars.isnot(None)
+    ).all()
+
+    if not users:
+        raise ValueError(f"No users found for organization {org_name} with all required attributes (dominant_language, location, stars).")
+     
+    # Añadir nodos al grafo con la URL del avatar y del perfil de GitHub
+    for user in users:
+        github_url = f"https://github.com/{user.username}"  # Construir la URL del perfil de GitHub
+        G.add_node(
+            user.username,
+            language=user.dominant_language,
+            continent=user.location,
+            stars=user.stars,
+            avatar_url=user.avatar_url,  # Suponiendo que `avatar_url` es el campo que almacena la URL del avatar
+            github_url=github_url  # Añadir la URL del perfil de GitHub
+        )
+        print(f"Added node for user: {user.username} with language: {user.dominant_language}, continent: {user.location}, stars: {user.stars}, avatar_url: {user.avatar_url}, github_url: {github_url}")
+    
+    # Añadir aristas basadas en los tres criterios
+    for user in users:
+        for other_user in users:
+            if user != other_user:
+                # Criterios de similitud
+                same_language = user.dominant_language == other_user.dominant_language
+                same_continent = user.location == other_user.location
+                similar_stars = abs(user.stars - other_user.stars) <= 50  # Por ejemplo, una diferencia de hasta 50 estrellas
+                
+                # Si cumplen los tres criterios, conectamos los nodos
+                if same_language and same_continent and similar_stars:
+                    try:
+                        G.add_edge(user.username, other_user.username)
+                        print(f"Added edge between {user.username} and {other_user.username} based on all three criteria: language, continent, stars")
+                    except Exception as e:
+                        print(f"Error adding edge: {e}")
+    
+    return G
+```
+## Explicación Detallada
+
+### 1. Filtrado de Usuarios
+El código comienza creando una instancia de un grafo no dirigido con `nx.Graph()`. Luego, se realiza una consulta a la base de datos para obtener todos los usuarios que pertenecen a una organización específica (`org_name`) y que tienen valores no nulos en tres atributos clave: `dominant_language` (lenguaje dominante), `location` (ubicación geográfica), y `stars` (número de estrellas recibidas en GitHub).
+
+Si no se encuentran usuarios que cumplan con estos criterios, se lanza una excepción con un mensaje de error.
+
+### 2. Creación de Nodos
+Por cada usuario que cumple con los criterios, se añade un nodo al grafo. Cada nodo representa a un usuario y contiene varios atributos:
+
+- `language`: El lenguaje de programación dominante del usuario.
+- `continent`: La ubicación geográfica del usuario.
+- `stars`: El número de estrellas que ha recibido el usuario en GitHub.
+- `avatar_url`: La URL del avatar del usuario en GitHub.
+- `github_url`: La URL del perfil del usuario en GitHub.
+
+### 3. Creación de Aristas
+El código luego crea aristas entre nodos (usuarios) basándose en tres criterios de similitud:
+
+- **Lenguaje**: Los usuarios tienen el mismo lenguaje dominante.
+- **Continente**: Los usuarios están ubicados en el mismo continente.
+- **Estrellas**: La diferencia en el número de estrellas entre los usuarios es menor o igual a 50.
+
+Si dos usuarios cumplen con estos tres criterios, se añade una arista entre sus nodos en el grafo.
+
+### 4. Devolución del Grafo
+Finalmente, la función devuelve el grafo construido, que puede ser utilizado para análisis o visualización.
+
+### Uso del Grafo
+El grafo resultante puede ser utilizado para analizar las conexiones entre los usuarios de una organización, visualizando cómo se relacionan basándose en sus características comunes.
+
+Este documento explica cómo se construye un grafo de usuarios de GitHub utilizando los atributos disponibles en la base de datos. El grafo puede ser una herramienta útil para analizar y visualizar las relaciones entre los usuarios de una organización específica.

@@ -1,0 +1,70 @@
+# Conexion BD - Backend
+
+Este documento describe el código Python utilizado para configurar la conexión a una base de datos PostgreSQL utilizando SQLAlchemy, así como la creación de una sesión de base de datos y el manejo de la sesión dentro de un contexto gestionado.
+
+## Importaciones
+
+El código realiza las siguientes importaciones principales:
+
+```python
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+import os
+```
+
+## Descripción de Funciones y Módulos
+
+- **`create_engine`**: Función de SQLAlchemy utilizada para configurar la conexión a la base de datos.
+- **`declarative_base`**: Función que devuelve una clase base para la definición de modelos en SQLAlchemy.
+- **`sessionmaker`**: Función que crea una clase para instanciar sesiones de base de datos.
+- **`os`**: Módulo estándar de Python utilizado para interactuar con el sistema operativo, en este caso, para obtener variables de entorno.
+
+## Configuración de la URL de la Base de Datos
+
+```python
+SQLALCHEMY_DATABASE_URL = "postgresql://user:password@db:5432/mydatabase"
+```
+
+## Configuración de la URL de la Base de Datos
+
+`SQLALCHEMY_DATABASE_URL` es una cadena de conexión que especifica la URL para conectarse a la base de datos PostgreSQL. Debe ser reemplazada con los valores correspondientes para el usuario (`user`), contraseña (`password`), host (en este caso `db`), y el nombre de la base de datos (`mydatabase`).
+
+## Manejo Condicional de la Conexión al Construir con Sphinx
+```python
+if os.getenv('SPHINX_BUILD') == 'true':
+    engine = None  # O cualquier otra cosa que no inicie la conexión real
+else:
+    from sqlalchemy import create_engine
+    engine = create_engine(SQLALCHEMY_DATABASE_URL)
+```
+Este bloque de código verifica si se está ejecutando un proceso de construcción de documentación con Sphinx, lo cual se determina mediante la variable de entorno `SPHINX_BUILD`. Si la variable está configurada como `true`, la variable `engine` se establece en `None` para evitar que se inicie una conexión real a la base de datos durante la construcción de la documentación. En caso contrario, se crea la conexión a la base de datos utilizando `create_engine`.
+
+## Creación de la Sesión de Base de Datos
+```python
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+```
+- **`SessionLocal`**: Se crea una clase para las sesiones de base de datos utilizando `sessionmaker`. Esta clase se configura para que no realice `autocommit` ni `autoflush` de manera automática.
+- **`Base`**: Es una clase base que se utiliza como fundamento para definir las clases de los modelos de datos.
+
+## Función `get_db`
+```python
+def get_db():
+    db = SessionLocal()
+    Base.metadata.create_all(bind=engine)
+
+    try:
+        yield db
+    finally:
+        db.close()
+````
+Esta función genera una sesión de base de datos que puede ser utilizada dentro de un contexto controlado:
+
+- Se instancia una sesión (`db`) utilizando `SessionLocal`.
+- Se asegura de que todas las tablas definidas en los modelos se creen en la base de datos.
+- La función utiliza `yield` para proporcionar la sesión al código que lo requiere, permitiendo así la ejecución dentro de un contexto gestionado.
+- Finalmente, garantiza que la sesión se cierre correctamente después de su uso.
+
+Este patrón es útil en aplicaciones web, donde se necesita gestionar las sesiones de base de datos de manera eficiente, asegurando la creación de las tablas necesarias y la correcta liberación de los recursos.

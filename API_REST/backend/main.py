@@ -13,7 +13,7 @@ from networkx.readwrite import json_graph
 
 from jose import JWTError, jwt
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from datetime import datetime, timedelta
 
@@ -39,7 +39,7 @@ from pydantic import BaseModel
 class UserCreate(BaseModel):
     rol: str
     username: str
-    password: str
+    password: Optional[str] = Field(None, description="Password can be empty when not updating")
     company: str
     
 class GitHubUserModel(Base):

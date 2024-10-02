@@ -1,0 +1,98 @@
+# Schema Pydantic - Backend
+
+
+Este módulo define los esquemas utilizados para validar y gestionar los datos en la aplicación.
+
+
+## GitHubUserSchema
+
+```{eval-rst}
+.. rubric:: Descripción
+```
+Este esquema representa a un usuario de GitHub, incluyendo detalles como su nombre de usuario, URL del perfil, avatar, ubicación, estrellas y lenguaje dominante.
+
+
+```{eval-rst}
+.. rubric:: Atributos
+```
+- **id**: ID único del usuario.
+- **username**: Nombre de usuario de GitHub.
+- **html_url**: URL del perfil de GitHub del usuario.
+- **avatar_url**: URL del avatar del usuario en GitHub.
+- **repos_url**: URL de los repositorios del usuario.
+- **location**: Ubicación geográfica del usuario.
+- **stars**: Número de estrellas recibidas en los repositorios del usuario.
+- **dominant_language**: Lenguaje de programación dominante del usuario.
+
+## ChangePasswordRequest
+
+```{eval-rst}
+.. rubric:: Descripción
+```
+Este esquema se utiliza para gestionar las solicitudes de cambio de contraseña, incluyendo el nombre de usuario, la contraseña actual y la nueva contraseña.
+
+```{eval-rst}
+.. rubric:: Atributos
+```
+
+## UserRepoContributionsSchema
+
+```{eval-rst}
+.. rubric:: Descripción
+```
+Este esquema representa las contribuciones de un usuario en un repositorio específico, incluyendo el nombre del repositorio y el número de contribuciones realizadas.
+
+```{eval-rst}
+.. rubric:: Atributos
+```
+
+## UserRepoCommitsSchema
+
+```{eval-rst}
+.. rubric:: Descripción
+```
+Este esquema representa los commits de un usuario en un repositorio específico, incluyendo la fecha del último commit.
+
+```{eval-rst}
+.. rubric:: Atributos
+```
+
+## Token
+
+```{eval-rst}
+.. rubric:: Descripción
+```
+
+Este esquema representa un token de autenticación, incluyendo el tipo de token y si el usuario es administrador.
+
+```{eval-rst}
+.. rubric:: Atributos
+```
+
+## TokenData
+
+```{eval-rst}
+.. rubric:: Descripción
+```
+
+Este esquema contiene los datos asociados con un token de autenticación, como el nombre de usuario y si el usuario es administrador.
+
+```{eval-rst}
+.. rubric:: Atributos
+```
+
+```{eval-rst}
+.. rubric:: Atributos
+```
+
+## UserCreate
+
+```{eval-rst}
+.. rubric:: Descripción
+```
+
+Este esquema se utiliza para la creación de nuevos usuarios, incluyendo el nombre de usuario y la contraseña.
+
+```{eval-rst}
+.. rubric:: Atributos
+```

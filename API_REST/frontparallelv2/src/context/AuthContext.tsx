@@ -75,7 +75,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
   
       swal.fire({
-        title: "Login Successful",
+        title: "Inicio de sesión exitoso",
         icon: "success",
         toast: true,
         timer: 6000,
@@ -85,10 +85,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
     } else {
       console.log(response.status);
-      console.log("There was a server issue");
+      console.log("Error de server");
   
       swal.fire({
-        title: "Username or password does not exist",
+        title: "Usuario o contraseña incorrectos",
         icon: "error",
         toast: true,
         timer: 6000,
@@ -126,7 +126,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log("Usuario registrado con éxito");
       navigate("/login");
       swal.fire({
-        title: "Registration Successful, Login Now",
+        title: "Registro exitoso, Ya puedes iniciar sesión",
         icon: "success",
         toast: true,
         timer: 6000,
@@ -159,7 +159,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem("token");
     navigate("/login");
     swal.fire({
-      title: "You have been logged out...",
+      title: "Has cerrado sesión",
       icon: "success",
       toast: true,
       timer: 6000,

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {  Table, Modal, Form } from 'react-bootstrap';
+import { Table, Modal, Form } from 'react-bootstrap';
 
 interface User {
   id: number;
@@ -44,26 +44,26 @@ const UserList: React.FC = () => {
   };
 
   const handleDeleteClick = async (id: number) => {
-  if (!id) {
-    console.error("User ID is undefined");
-    return;
-  }
+    if (!id) {
+      console.error("User ID is undefined");
+      return;
+    }
 
-  const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token');
 
-  const response = await fetch(`http://localhost:8000/users/${id}`, {
-    method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${token}`,  // Incluye el token de autenticación
-    },
-  });
+    const response = await fetch(`http://localhost:8000/users/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,  // Incluye el token de autenticación
+      },
+    });
 
-  if (response.ok) {
-    setUsers(users.filter(user => user.id !== id));
-  } else {
-    console.error('Failed to delete user');
-  }
-};
+    if (response.ok) {
+      setUsers(users.filter(user => user.id !== id));
+    } else {
+      console.error('Failed to delete user');
+    }
+  };
 
   const handleEditSubmit = async () => {
     const token = localStorage.getItem('token');
@@ -90,9 +90,9 @@ const UserList: React.FC = () => {
   };
 
   return (
-    <div>
-      <h2>Lista de Usuarios del Sistema</h2>
-      <Table striped bordered hover>
+    <div className="container mt-4">
+      <h2 className="mb-4">Lista de Usuarios del Sistema</h2>
+      <Table striped bordered hover responsive>
         <thead>
           <tr>
             <th>ID</th>
@@ -103,39 +103,29 @@ const UserList: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-        {users.map((user, index) => {
-  console.log(`Rendering user at index ${index}:`, user);
-
-  if (!user) {
-    console.error("User is undefined at index", index);
-    return null;  // O muestra un mensaje de error en la fila
-  }
-
-  return (
-    <tr key={user.id}>
-      <td>{user.id}</td>
-      <td>{user.username}</td>
-      <td>{user.rol}</td>
-      <td>{user.company}</td>
-      <td>
-        <button type="button" className="btn btn-warning me-2" onClick={() => handleEditClick(user)}>
-          <i className="bi bi-pencil-square"></i> Editar
-        </button>
-
-        <button type="button" className="btn btn-danger" onClick={() => handleDeleteClick(user.id)}>
-          <i className="bi bi-trash"></i> Eliminar
-        </button>
-      </td>
-    </tr>
-  );
-})}
+          {users.map((user, index) => (
+            <tr key={user.id}>
+              <td>{user.id}</td>
+              <td>{user.username}</td>
+              <td>{user.rol}</td>
+              <td>{user.company}</td>
+              <td>
+                <button type="button" className="btn btn-warning me-2" onClick={() => handleEditClick(user)}>
+                  <i className="bi bi-pencil-square"></i> Editar
+                </button>
+                <button type="button" className="btn btn-danger" onClick={() => handleDeleteClick(user.id)}>
+                  <i className="bi bi-trash"></i> Eliminar
+                </button>
+              </td>
+            </tr>
+          ))}
         </tbody>
       </Table>
 
       {/* Modal para editar usuario */}
       <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>Editar Usuarior</Modal.Title>
+          <Modal.Title>Editar Usuario</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {editUser && (
@@ -165,9 +155,8 @@ const UserList: React.FC = () => {
                 />
               </Form.Group>
               <button type="button" className="btn btn-success" onClick={handleEditSubmit}>
-                 Guardar Cambios
-                </button>
-
+                Guardar Cambios
+              </button>
             </Form>
           )}
         </Modal.Body>

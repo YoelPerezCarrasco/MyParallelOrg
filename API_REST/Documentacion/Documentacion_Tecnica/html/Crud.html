@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="es" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grafo Conexiones - Backend &mdash; documentación de MyParallelOrg - 0.1</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=9c9b61ad"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/translations.js?v=d190bf04"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Índice" href="genindex.html" />
+    <link rel="search" title="Búsqueda" href="search.html" />
+    <link rel="next" title="Recolección API GitHub - Backend" href="RequestGitHub.html" />
+    <link rel="prev" title="API/Instalación/Modelos - Middleware" href="Backend.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MyParallelOrg
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Buscar documentos" aria-label="Buscar documentos" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Indice</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Backend.html">API/Instalación/Modelos - Middleware</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Grafo Conexiones - Backend</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#descripcion-general">Descripción General</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dependencias">Dependencias</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#codigo">Código</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#explicacion-detallada">Explicación Detallada</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#filtrado-de-usuarios">1. Filtrado de Usuarios</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#creacion-de-nodos">2. Creación de Nodos</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#creacion-de-aristas">3. Creación de Aristas</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#devolucion-del-grafo">4. Devolución del Grafo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#uso-del-grafo">Uso del Grafo</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="RequestGitHub.html">Recolección API GitHub - Backend</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Schemas.html">Schema Pydantic - Backend</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Database.html">Conexion BD - Backend</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MyParallelOrg</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Grafo Conexiones - Backend</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Crud.md.txt" rel="nofollow"> Ver código fuente de la página</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="grafo-conexiones-backend">
+<h1>Grafo Conexiones - Backend<a class="headerlink" href="#grafo-conexiones-backend" title="Link to this heading"></a></h1>
+<p>Este documento explica el funcionamiento del código que se encarga de construir un grafo de usuarios en base a ciertos criterios. El código utiliza la biblioteca <code class="docutils literal notranslate"><span class="pre">networkx</span></code> para manejar grafos y SQLAlchemy para interactuar con la base de datos.</p>
+<section id="descripcion-general">
+<h2>Descripción General<a class="headerlink" href="#descripcion-general" title="Link to this heading"></a></h2>
+<p>El objetivo principal de este código es construir un grafo en el que cada nodo representa un usuario de GitHub, y las conexiones (aristas) entre nodos se basan en criterios de similitud entre los usuarios. El grafo resultante puede ser utilizado para visualizar y analizar las conexiones entre usuarios dentro de una organización específica.</p>
+</section>
+<section id="dependencias">
+<h2>Dependencias<a class="headerlink" href="#dependencias" title="Link to this heading"></a></h2>
+<p>Este código depende de las siguientes bibliotecas:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">networkx</span></code>: Utilizada para la creación y manipulación de grafos.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SQLAlchemy</span></code>: Utilizada para la interacción con la base de datos.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">backend.models.GitHubUserModel</span></code>: El modelo que representa a un usuario de GitHub en la base de datos.</p></li>
+</ul>
+</section>
+<section id="codigo">
+<h2>Código<a class="headerlink" href="#codigo" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">Session</span>
+<span class="kn">from</span> <span class="nn">backend.models</span> <span class="kn">import</span> <span class="n">GitHubUserModel</span>
+
+<span class="k">def</span> <span class="nf">build_user_graph</span><span class="p">(</span><span class="n">db</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">org_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+    
+    <span class="c1"># Filtrar usuarios por organización y no tener valores nulos en `dominant_language`, `location`, `stars`</span>
+    <span class="n">users</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">GitHubUserModel</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+        <span class="n">GitHubUserModel</span><span class="o">.</span><span class="n">organization</span> <span class="o">==</span> <span class="n">org_name</span><span class="p">,</span>
+        <span class="n">GitHubUserModel</span><span class="o">.</span><span class="n">dominant_language</span><span class="o">.</span><span class="n">isnot</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span>
+        <span class="n">GitHubUserModel</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">isnot</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span>
+        <span class="n">GitHubUserModel</span><span class="o">.</span><span class="n">stars</span><span class="o">.</span><span class="n">isnot</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">users</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No users found for organization </span><span class="si">{</span><span class="n">org_name</span><span class="si">}</span><span class="s2"> with all required attributes (dominant_language, location, stars).&quot;</span><span class="p">)</span>
+     
+    <span class="c1"># Añadir nodos al grafo con la URL del avatar y del perfil de GitHub</span>
+    <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span><span class="p">:</span>
+        <span class="n">github_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;https://github.com/</span><span class="si">{</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2">&quot;</span>  <span class="c1"># Construir la URL del perfil de GitHub</span>
+        <span class="n">G</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span>
+            <span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
+            <span class="n">language</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">dominant_language</span><span class="p">,</span>
+            <span class="n">continent</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">location</span><span class="p">,</span>
+            <span class="n">stars</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">stars</span><span class="p">,</span>
+            <span class="n">avatar_url</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">avatar_url</span><span class="p">,</span>  <span class="c1"># Suponiendo que `avatar_url` es el campo que almacena la URL del avatar</span>
+            <span class="n">github_url</span><span class="o">=</span><span class="n">github_url</span>  <span class="c1"># Añadir la URL del perfil de GitHub</span>
+        <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Added node for user: </span><span class="si">{</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2"> with language: </span><span class="si">{</span><span class="n">user</span><span class="o">.</span><span class="n">dominant_language</span><span class="si">}</span><span class="s2">, continent: </span><span class="si">{</span><span class="n">user</span><span class="o">.</span><span class="n">location</span><span class="si">}</span><span class="s2">, stars: </span><span class="si">{</span><span class="n">user</span><span class="o">.</span><span class="n">stars</span><span class="si">}</span><span class="s2">, avatar_url: </span><span class="si">{</span><span class="n">user</span><span class="o">.</span><span class="n">avatar_url</span><span class="si">}</span><span class="s2">, github_url: </span><span class="si">{</span><span class="n">github_url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Añadir aristas basadas en los tres criterios</span>
+    <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">other_user</span> <span class="ow">in</span> <span class="n">users</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">user</span> <span class="o">!=</span> <span class="n">other_user</span><span class="p">:</span>
+                <span class="c1"># Criterios de similitud</span>
+                <span class="n">same_language</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">dominant_language</span> <span class="o">==</span> <span class="n">other_user</span><span class="o">.</span><span class="n">dominant_language</span>
+                <span class="n">same_continent</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">location</span> <span class="o">==</span> <span class="n">other_user</span><span class="o">.</span><span class="n">location</span>
+                <span class="n">similar_stars</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">stars</span> <span class="o">-</span> <span class="n">other_user</span><span class="o">.</span><span class="n">stars</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">50</span>  <span class="c1"># Por ejemplo, una diferencia de hasta 50 estrellas</span>
+                
+                <span class="c1"># Si cumplen los tres criterios, conectamos los nodos</span>
+                <span class="k">if</span> <span class="n">same_language</span> <span class="ow">and</span> <span class="n">same_continent</span> <span class="ow">and</span> <span class="n">similar_stars</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="n">other_user</span><span class="o">.</span><span class="n">username</span><span class="p">)</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Added edge between </span><span class="si">{</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">other_user</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2"> based on all three criteria: language, continent, stars&quot;</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error adding edge: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">G</span>
+</pre></div>
+</div>
+</section>
+<section id="explicacion-detallada">
+<h2>Explicación Detallada<a class="headerlink" href="#explicacion-detallada" title="Link to this heading"></a></h2>
+<section id="filtrado-de-usuarios">
+<h3>1. Filtrado de Usuarios<a class="headerlink" href="#filtrado-de-usuarios" title="Link to this heading"></a></h3>
+<p>El código comienza creando una instancia de un grafo no dirigido con <code class="docutils literal notranslate"><span class="pre">nx.Graph()</span></code>. Luego, se realiza una consulta a la base de datos para obtener todos los usuarios que pertenecen a una organización específica (<code class="docutils literal notranslate"><span class="pre">org_name</span></code>) y que tienen valores no nulos en tres atributos clave: <code class="docutils literal notranslate"><span class="pre">dominant_language</span></code> (lenguaje dominante), <code class="docutils literal notranslate"><span class="pre">location</span></code> (ubicación geográfica), y <code class="docutils literal notranslate"><span class="pre">stars</span></code> (número de estrellas recibidas en GitHub).</p>
+<p>Si no se encuentran usuarios que cumplan con estos criterios, se lanza una excepción con un mensaje de error.</p>
+</section>
+<section id="creacion-de-nodos">
+<h3>2. Creación de Nodos<a class="headerlink" href="#creacion-de-nodos" title="Link to this heading"></a></h3>
+<p>Por cada usuario que cumple con los criterios, se añade un nodo al grafo. Cada nodo representa a un usuario y contiene varios atributos:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">language</span></code>: El lenguaje de programación dominante del usuario.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">continent</span></code>: La ubicación geográfica del usuario.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stars</span></code>: El número de estrellas que ha recibido el usuario en GitHub.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">avatar_url</span></code>: La URL del avatar del usuario en GitHub.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">github_url</span></code>: La URL del perfil del usuario en GitHub.</p></li>
+</ul>
+</section>
+<section id="creacion-de-aristas">
+<h3>3. Creación de Aristas<a class="headerlink" href="#creacion-de-aristas" title="Link to this heading"></a></h3>
+<p>El código luego crea aristas entre nodos (usuarios) basándose en tres criterios de similitud:</p>
+<ul class="simple">
+<li><p><strong>Lenguaje</strong>: Los usuarios tienen el mismo lenguaje dominante.</p></li>
+<li><p><strong>Continente</strong>: Los usuarios están ubicados en el mismo continente.</p></li>
+<li><p><strong>Estrellas</strong>: La diferencia en el número de estrellas entre los usuarios es menor o igual a 50.</p></li>
+</ul>
+<p>Si dos usuarios cumplen con estos tres criterios, se añade una arista entre sus nodos en el grafo.</p>
+</section>
+<section id="devolucion-del-grafo">
+<h3>4. Devolución del Grafo<a class="headerlink" href="#devolucion-del-grafo" title="Link to this heading"></a></h3>
+<p>Finalmente, la función devuelve el grafo construido, que puede ser utilizado para análisis o visualización.</p>
+</section>
+<section id="uso-del-grafo">
+<h3>Uso del Grafo<a class="headerlink" href="#uso-del-grafo" title="Link to this heading"></a></h3>
+<p>El grafo resultante puede ser utilizado para analizar las conexiones entre los usuarios de una organización, visualizando cómo se relacionan basándose en sus características comunes.</p>
+<p>Este documento explica cómo se construye un grafo de usuarios de GitHub utilizando los atributos disponibles en la base de datos. El grafo puede ser una herramienta útil para analizar y visualizar las relaciones entre los usuarios de una organización específica.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pie de página">
+        <a href="Backend.html" class="btn btn-neutral float-left" title="API/Instalación/Modelos - Middleware" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Anterior</a>
+        <a href="RequestGitHub.html" class="btn btn-neutral float-right" title="Recolección API GitHub - Backend" accesskey="n" rel="next">Siguiente <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Derechos de autor 2024, Yoel Perez Carrasco.</p>
+  </div>
+
+  Compilado con <a href="https://www.sphinx-doc.org/">Sphinx</a> usando un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    proporcionado por <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,101 @@
+# Documentación del Frontend
+
+## Descripción General
+
+Este documento describe la estructura y funcionamiento del frontend de la aplicación, implementado en React. El código se organiza en componentes, rutas, y utilidades para gestionar la autenticación y los permisos de acceso.
+
+## Componentes Principales
+
+### 1. `AuthProvider`
+Este componente provee el contexto de autenticación para toda la aplicación. Envuelve todos los componentes dentro del árbol de componentes, permitiendo que cualquier componente pueda acceder al estado de autenticación.
+
+### 2. `Navbar`
+El componente de navegación que se muestra en todas las páginas de la aplicación. Es responsable de mostrar enlaces a las diferentes rutas disponibles.
+
+### 3. `Homepage`
+La página principal de la aplicación. Es la primera vista que los usuarios verán al acceder a la ruta base (`/`).
+
+### 4. `Loginpage` y `Registerpage`
+Estas vistas gestionan el inicio de sesión y el registro de nuevos usuarios, respectivamente.
+
+### 5. `UserDashboard`
+Panel de usuario accesible para usuarios autenticados.
+
+### 6. `ManagerDashboard`
+Panel de control accesible solo para usuarios con rol de Manager. Protegido por el componente `RequireManagerToken`.
+
+### 7. `AdminDashboard`
+Panel de control para administradores. Protegido por el componente `RequireAdminToken`.
+
+### 8. `UserList`, `CreateUser`, `EditUser`
+Estas vistas están relacionadas con la gestión de usuarios:
+- `UserList`: Muestra una lista de usuarios.
+- `CreateUser`: Permite la creación de un nuevo usuario.
+- `EditUser`: Permite editar un usuario existente.
+
+### 9. `UserGraph`
+Componente que visualiza gráficos relacionados con la organización seleccionada. La ruta captura un parámetro `organization` para filtrar los datos que se muestran.
+
+### 10. `Setting`
+Página de configuración para el usuario autenticado.
+
+## Rutas de la Aplicación
+
+### Rutas Protegidas
+
+- **`/user/dashboard`**: Muestra el panel de usuario. Protegido por autenticación básica.
+- **`/manager/dashboard`**: Muestra el panel de manager. Protegido por `RequireManagerToken`.
+- **`/admin/dashboard`**: Muestra el panel de administrador. Protegido por `RequireAdminToken`.
+- **`/admin/users`**: Lista de usuarios, accesible solo para administradores.
+- **`/admin/users/create`**: Formulario para crear un nuevo usuario, accesible solo para administradores.
+- **`/admin/users/edit/:id`**: Formulario para editar un usuario existente. Accesible solo para administradores.
+
+### Rutas Públicas
+
+- **`/graphs/:organization`**: Muestra gráficos basados en la organización seleccionada.
+- **`/login`**: Página de inicio de sesión.
+- **`/register`**: Página de registro.
+- **`/settings`**: Página de configuración del usuario.
+- **`/`**: Página de inicio.
+
+## Utilidades
+
+### 1. `PrivateRoute`
+Componente de utilidad para proteger rutas que requieren autenticación.
+
+### 2. `RequireAdminToken`
+Componente de utilidad para proteger rutas que requieren que el usuario sea administrador.
+
+### 3. `RequireManagerToken`
+Componente de utilidad para proteger rutas que requieren que el usuario sea un manager.
+
+## Dependencias Importadas
+
+- **Bootstrap**: Utilizado para el diseño y los estilos CSS.
+- **React Router DOM**: Utilizado para la gestión de rutas y la navegación.
+
+## Ejemplo de Uso
+
+El archivo `App.tsx` o `App.jsx` centraliza la configuración de rutas y la estructura principal de la aplicación, envolviendo todo en el `AuthProvider` para que los estados de autenticación y autorización estén disponibles en toda la aplicación.
+
+```js
+import React from 'react';
+import { Route, Routes } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import Homepage from './views/Home';
+// Importación de otros componentes...
+
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <Navbar />
+      <Routes>
+        {/* Definición de rutas... */}
+      </Routes>
+    </AuthProvider>
+  );
+}
+
+export default App;
+```
+Este archivo es el punto de entrada de la aplicación, donde se configuran todas las rutas y se especifican los componentes que se renderizarán para cada ruta.
