@@ -5,7 +5,7 @@ import { parseJwt } from './../utils/jwtDecode';
 import './../styles/Navbar.css'; // Personaliza estilos adicionales si es necesario
 
 const Navbar: React.FC = () => {
-  const { user, logoutUser } = useContext(AuthContext)!;
+  const { logoutUser } = useContext(AuthContext)!;
 
   let username: string | null = null;
   let is_admin: boolean | null = null;
