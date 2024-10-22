@@ -16,10 +16,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Endpoints CRUD para usuarios
-@router.get("/manager/users", response_model=List[UserResponse])
+@router.get("/manager/users")
 async def get_users_for_manager(db: Session = Depends(get_db), current_user: UserModel = Depends(get_current_user)):
-    if not current_user.is_manager:
+    if not current_user.is_manager:  # Asumiendo que tienes un campo 'is_manager' en tu modelo de usuario
         raise HTTPException(status_code=403, detail="Access forbidden: Only managers can access this resource.")
+    
     company_name = current_user.company
     users = db.query(GitHubUserModel).filter(GitHubUserModel.organization == company_name).all()
     return users
@@ -55,6 +56,7 @@ async def update_user_endpoint(user_id: int, user_data: UserCreate, db: Session 
     db.commit()
     db.refresh(user)
     return user
+
 
 @router.delete("/users/{user_id}", status_code=204)
 async def delete_user_endpoint(user_id: int, db: Session = Depends(get_db), current_user: UserModel = Depends(get_current_user)):

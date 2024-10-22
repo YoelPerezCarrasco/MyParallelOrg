@@ -2,7 +2,7 @@
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, users, github
+from app.routers import auth, users, github, prediction, manager  # Importa los routers
 from app.database.database import init_db  # Importa la función init_db
 
 # Crear la instancia de la aplicación FastAPI
@@ -24,6 +24,8 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(users.router, prefix="/users", tags=["Users"])
 app.include_router(github.router, prefix="/github", tags=["GitHub"])
+app.include_router(prediction.router, prefix="/prediction", tags=["Prediction"])
+app.include_router(manager.router, prefix="/manager", tags=["Manager"])
 
 # Configuración de logging
 logging.basicConfig(level=logging.INFO)

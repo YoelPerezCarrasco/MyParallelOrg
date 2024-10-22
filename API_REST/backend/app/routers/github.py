@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database.database import get_db
 from app.models.user import GitHubUserModel
-from app.services.github import fetch_github_org_repos, fetch_github_repo_contributors, fetch_github_repo_commits, fetch_github_user_stars
+from app.services.github import fetch_github_org_repos, fetch_github_repo_contributors, fetch_github_repo_commits, fetch_github_user_stars, fetch_pull_requests
 from app.services.connections import build_user_graph, store_or_get_user, store_repo_contribution, store_repo_commit, update_users_with_dominant_language2
 from networkx.readwrite import json_graph
 import random
@@ -76,7 +76,25 @@ async def get_org_users(org: str, db: Session = Depends(get_db)):
                 store_repo_commit(db, user, repo_name, commit_date)
         except Exception as e:
             logger.error(f"Error fetching commits for repo {repo_name}: {e}")
-    
+        
+        logger.info(f"Fetching pull requests for repo: {repo_name}")
+        try:
+            pull_requests = await fetch_pull_requests(org, repo_name)
+            for pr_data in pull_requests:
+                # Store the pull request
+                pr = await store_pull_request(db, pr_data, repo_name)
+
+                # Fetch and store comments
+                comments = await fetch_pull_request_comments(org, repo_name, pr.pr_number)
+                for comment_data in comments:
+                    await store_pull_request_comment(db, pr.id, comment_data)
+
+                # Fetch and store reviews
+                reviews = await fetch_pull_request_reviews(org, repo_name, pr.pr_number)
+                for review_data in reviews:
+                    await store_pull_request_review(db, pr.id, review_data)
+        except Exception as e:
+            logger.error(f"Error fetching pull requests for repo {repo_name}: {e}")
     simulate_user_locations(db)
     await update_users_with_dominant_language2(db)
 

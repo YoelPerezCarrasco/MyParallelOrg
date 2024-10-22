@@ -184,3 +184,67 @@ async def fetch_github_user_stars(username: str) -> int:
     except Exception as e:
         logger.error(f"Error fetching GitHub user stars: {e}")
         raise
+
+
+async def fetch_pull_requests(org: str, repo: str) -> List[dict]:
+    url = f"https://api.github.com/repos/{org}/{repo}/pulls"
+    headers = {
+        'Authorization': f'token {GITHUB_TOKEN}'
+    }
+    pull_requests = []
+    page = 1
+
+    try:
+        async with httpx.AsyncClient() as client:
+            while True:
+                response = await client.get(url, headers=headers, params={"per_page": 100, "page": page, "state": "all"})
+                response.raise_for_status()
+                prs = response.json()
+
+                if not prs:
+                    break
+
+                pull_requests.extend(prs)
+                page += 1
+
+        return pull_requests
+    except httpx.HTTPStatusError as e:
+        logger.error(f"GitHub API error: {e.response.status_code} for repo {repo}")
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching pull requests for repo {repo}: {e}")
+        raise
+
+async def fetch_pull_request_comments(org: str, repo: str, pr_number: int) -> List[dict]:
+    url = f"https://api.github.com/repos/{org}/{repo}/issues/{pr_number}/comments"
+    headers = {
+        'Authorization': f'token {GITHUB_TOKEN}'
+    }
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, headers=headers)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as e:
+        logger.error(f"GitHub API error: {e.response.status_code} for PR {pr_number} in repo {repo}")
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching comments for PR {pr_number} in repo {repo}: {e}")
+        raise
+
+async def fetch_pull_request_reviews(org: str, repo: str, pr_number: int) -> List[dict]:
+    url = f"https://api.github.com/repos/{org}/{repo}/pulls/{pr_number}/reviews"
+    headers = {
+        'Authorization': f'token {GITHUB_TOKEN}'
+    }
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, headers=headers)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as e:
+        logger.error(f"GitHub API error: {e.response.status_code} for PR {pr_number} in repo {repo}")
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching reviews for PR {pr_number} in repo {repo}: {e}")
+        raise
