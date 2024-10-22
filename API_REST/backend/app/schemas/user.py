@@ -1,7 +1,21 @@
-from pydantic import BaseModel
+from pydantic import BaseModel,Field
 from datetime import datetime
 from typing import Optional
 
+class UserCreate(BaseModel):
+    rol: str
+    username: str
+    password: Optional[str] = Field(None, description="Password can be empty when not updating")
+    company: str
+
+     
+    model_config = {
+        "from_attributes": True
+    }
+
+class LoginItem(BaseModel):
+    username: str
+    password: str
 
 class GitHubUserSchema(BaseModel):
     id: int
@@ -58,7 +72,3 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: Optional[str] = None
     is_admin: Optional[bool] = False
-
-class UserCreate(BaseModel):
-    username: str
-    password: str

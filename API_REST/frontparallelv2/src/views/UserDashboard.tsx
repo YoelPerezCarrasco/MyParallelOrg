@@ -22,7 +22,7 @@ const UserDashboard: React.FC = () => {
             }
 
             try {
-                const response = await fetch('http://localhost:8000/user/connections', {
+                const response = await fetch('http://localhost:8000/users/user/connections', {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },

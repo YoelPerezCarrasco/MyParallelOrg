@@ -2,7 +2,8 @@
 from sqlalchemy.orm import Session
 from app.models.user import UserModel, GitHubUserModel
 from app.schemas.user import UserCreate, UserResponse
-from app.core.security import get_password_hash, get_current_user
+from app.core.security import get_password_hash
+from app.services.auth import get_current_user
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 from app.database.database import get_db

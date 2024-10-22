@@ -28,7 +28,7 @@ const UserGraph: React.FC = () => {
   useEffect(() => {
     // Usar la organización en la URL de la petición
     if (organization) {
-      fetch(`http://localhost:8000/user-connections/${organization}`)
+      fetch(`http://localhost:8000/users/user-connections/${organization}`)
         .then(response => response.json())
         .then(data => {
           setNodes(data.nodes);

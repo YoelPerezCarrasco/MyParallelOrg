@@ -3,7 +3,7 @@ import httpx
 import logging
 from typing import List
 from sqlalchemy.orm import Session
-from backend.models import GitHubUserModel
+from app.models.user import GitHubUserModel
 import logging
 
 
@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Tu token de autenticación de GitHub
-GITHUB_TOKEN = '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'
+GITHUB_TOKEN = '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'
 
 async def fetch_github_user(username: str) -> dict:
     url = f"https://api.github.com/users/{username}"

@@ -48,7 +48,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const navigate = useNavigate();
   const loginUser = async (username: string, password: string) => {
-    const response = await fetch('http://localhost:8000/login/', {
+    const response = await fetch('http://localhost:8000/auth/login/', {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -107,7 +107,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         company: company
     });
 
-    const response = await fetch("http://localhost:8000/register/", {
+    const response = await fetch("http://localhost:8000/auth/register/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

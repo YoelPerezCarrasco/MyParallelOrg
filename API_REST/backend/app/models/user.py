@@ -1,18 +1,12 @@
 # models/user.py
-from dataclasses import Field
 from typing import Optional
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from pydantic import BaseModel
 
-Base = declarative_base()
+from app.database.database import Base
 
-class UserCreate(BaseModel):
-    rol: str
-    username: str
-    password: Optional[str] = Field(None, description="Password can be empty when not updating")
-    company: str
     
 class GitHubUserModel(Base):
     __tablename__ = 'github_users'

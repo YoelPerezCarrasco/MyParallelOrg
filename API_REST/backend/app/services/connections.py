@@ -1,10 +1,15 @@
 
 
 
+import random
+from sqlite3 import IntegrityError
+from venv import logger
 import networkx as nx
 from sqlalchemy.orm import Session
-from backend.models import GitHubUserModel
+from app.models.user import GitHubUserModel, UserRepoCommits, UserRepoContributions
+from app.services.github import fetch_user_dominant_language
 
+continents = ['Africa', 'Asia', 'Europe', 'North America', 'South America', 'Oceania', 'Antarctica']
 
 
 def simulate_user_locations(db: Session):

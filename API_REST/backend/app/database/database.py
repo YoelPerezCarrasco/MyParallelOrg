@@ -28,5 +28,4 @@ def get_db():
 # Inicializar la base de datos
 def init_db():
     # Importar modelos para que sean reconocidos por SQLAlchemy
-    from app.models import user
     Base.metadata.create_all(bind=engine)

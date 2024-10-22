@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from app.database.database import get_db
 from app.services.auth import authenticate_user, get_current_user
 from app.core.security import create_access_token, get_password_hash
-from app.schemas.user import UserCreate, ChangePasswordRequest
+from app.schemas.user import UserCreate, ChangePasswordRequest, LoginItem
 from app.models.user import UserModel
 from app.core.config import ACCESS_TOKEN_EXPIRES_MINUTES
 from app.core.security import pwd_context
@@ -16,14 +16,16 @@ router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 @router.post("/login", response_model=dict)
-async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = authenticate_user(db, form_data.username, form_data.password)
+async def login(login_item: LoginItem, db: Session = Depends(get_db)):
+    user = authenticate_user(db, login_item.username, login_item.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    # Crear el token de acceso, incluyendo el rol del usuario en el token
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRES_MINUTES)
     access_token = create_access_token(
         data={"username": user.username, "is_admin": user.is_admin, "is_manager": user.is_manager},
@@ -31,10 +33,11 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
     )
     return {
         "access_token": access_token,
-        "token_type": "bearer",
+        "token": "bearer",
         "username": user.username,
-        "is_admin": user.is_admin,
-        "is_manager": user.is_manager
+        "is_admin": user.is_admin,  # Devuelve la información de si es admin o no
+        "is_manager": user.is_manager  # Devuelve la información de si es admin o no
+
     }
 
 @router.get("/users/me")

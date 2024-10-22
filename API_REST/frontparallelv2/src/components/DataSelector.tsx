@@ -11,7 +11,7 @@ const DataSelector: React.FC = () => {
   // Obtener las organizaciones desde el backend cuando se monta el componente
   useEffect(() => {
     setLoading(true);
-    fetch('http://localhost:8000/organizations')  // Endpoint que devuelve la lista de organizaciones
+    fetch('http://localhost:8000/github/organizations')  // Endpoint que devuelve la lista de organizaciones
       .then(response => response.json())
       .then(data => {
         setDatabases(data);  // Asume que la respuesta es un array de objetos con id y name
@@ -33,13 +33,13 @@ const DataSelector: React.FC = () => {
   const handleAddOrganization = () => {
     if (newOrg) {
       setLoading(true);  // Inicia la carga
-      fetch(`http://localhost:8000/org-users2/${newOrg}`, {
+      fetch(`http://localhost:8000/github/org-users2/${newOrg}`, {
         method: 'GET',  // O el método que utilices para crear los usuarios
       })
         .then(response => {
           if (response.ok) {
             // Refrescar la lista de organizaciones
-            return fetch('http://localhost:8000/organizations');  // Vuelve a obtener la lista actualizada
+            return fetch('http://localhost:8000/github/organizations');  // Vuelve a obtener la lista actualizada
           } else {
             throw new Error('Error creating organization');
           }

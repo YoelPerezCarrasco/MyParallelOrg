@@ -25,7 +25,7 @@ const ManagerDashboard: React.FC = () => {
             }
 
             try {
-                const response = await fetch('http://localhost:8000/manager/users', {
+                const response = await fetch('http://localhost:8000/users/manager/users', {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }

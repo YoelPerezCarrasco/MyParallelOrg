@@ -3,8 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database.database import get_db
 from app.models.user import GitHubUserModel
-from app.services.github import fetch_github_org_repos, fetch_github_repo_contributors, fetch_github_repo_commits, fetch_github_user_stars, store_or_get_user, store_repo_commit, store_repo_contribution, update_users_with_dominant_language2
-from app.services.connections import build_user_graph
+from app.services.github import fetch_github_org_repos, fetch_github_repo_contributors, fetch_github_repo_commits, fetch_github_user_stars
+from app.services.connections import build_user_graph, store_or_get_user, store_repo_contribution, store_repo_commit, update_users_with_dominant_language2
 from networkx.readwrite import json_graph
 import random
 import logging
