@@ -1,52 +1,146 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import FlickeringGrid from '../components/FlickeringGrid';
-import DataSelector from '../components/DataSelector'; // Asegúrate de ajustar la ruta si es necesario
 
-const AdminDashboard: React.FC = () => (
-  <div className="position-relative" style={{ minHeight: '100vh' }}>
-    {/* Fondo interactivo (Flickering Grid) */}
-    <FlickeringGrid />
+interface GamificationConfig {
+  puntos_commit: number;
+  puntos_revision: number;
+  puntos_pr_aceptado: number;
+}
 
-    <div className="container position-relative" style={{ zIndex: 1 }}>
-      <h2 className="display-3 mb-4 text-center">Admin Dashboard</h2>
-      <p className="mb-4 text-center">¡Bienvenido al panel de administración! Aquí puedes gestionar los usuarios de la plataforma.</p>
+const AdminDashboard: React.FC = () => {
+  const [modelStatus, setModelStatus] = useState<{ status: string; accuracy: string | null }>({ status: '', accuracy: null });
+  const [config, setConfig] = useState<GamificationConfig>({ puntos_commit: 10, puntos_revision: 5, puntos_pr_aceptado: 20 });
 
-      <div className="row mb-4">
-        {/* Aquí incorporamos el DataSelector como una herramienta adicional */}
-        <div className="col-md-12">
-          <div className="card">
-            <div className="card-body text-center">
-              <h5 className="card-title">Seleccionar Datos</h5>
-              <p className="card-text">Utiliza el selector de datos para filtrar o gestionar datos específicos.</p>
-              <DataSelector />
-            </div>
-          </div>
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+
+    // Obtener el estado del modelo
+    fetch('http://localhost:8000/adminml/admin/model-status', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(res => res.json())
+      .then(data => setModelStatus(data));
+
+    // Obtener la configuración de gamificación
+    fetch('http://localhost:8000/admin_gamification/admin/gamification-config', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(res => res.json())
+      .then(data => setConfig(data));
+  }, []);
+
+  const trainModel = () => {
+    const token = localStorage.getItem('token');
+    fetch('http://localhost:8000/adminml/admin/train-model', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(res => res.json())
+      .then(data => alert(data.message))
+      .catch(err => console.error(err));
+  };
+
+  const updateConfig = (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    fetch('http://localhost:8000/admin_gamification/admin/gamification-config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(config),
+    })
+      .then(res => res.json())
+      .then(data => alert(data.message))
+      .catch(err => console.error(err));
+  };
+
+  const updatePoints = () => {
+    const token = localStorage.getItem('token');
+    fetch('http://localhost:8000/admin_gamification/admin/update-points', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(res => res.json())
+      .then(data => alert(data.message))
+      .catch(err => console.error(err));
+  };
+
+  return (
+    <div className="container mt-5">
+      <h2 className="mb-4 text-center">Panel de Administración</h2>
+
+      <div className="card mb-4">
+        <div className="card-header bg-primary text-white">
+          Estado del Modelo de Machine Learning
+        </div>
+        <div className="card-body">
+          <p><strong>Estado:</strong> {modelStatus.status}</p>
+          {modelStatus.accuracy && <p><strong>Precisión:</strong> {modelStatus.accuracy}</p>}
+          <button className="btn btn-primary me-2" onClick={trainModel}>Entrenar Modelo</button>
+          <button className="btn btn-secondary" onClick={updatePoints}>Actualizar Puntos de Usuarios</button>
         </div>
       </div>
 
-      <div className="row">
-        <div className="col-md-6 mb-3">
-          <div className="card">
-            <div className="card-body text-center">
-              <h5 className="card-title">Listar Usuarios</h5>
-              <p className="card-text">Ver todos los usuarios registrados.</p>
-              <Link to="/admin/users/list" className="btn btn-primary">Ver Usuarios</Link>
-            </div>
-          </div>
+      <div className="card mb-4">
+        <div className="card-header bg-success text-white">
+          Configuración de Gamificación
         </div>
-        <div className="col-md-6 mb-3">
-          <div className="card">
-            <div className="card-body text-center">
-              <h5 className="card-title">Crear Usuario</h5>
-              <p className="card-text">Añadir un nuevo usuario a la plataforma.</p>
-              <Link to="/admin/users/create" className="btn btn-success">Crear Usuario</Link>
+        <div className="card-body">
+          <form onSubmit={updateConfig}>
+            <div className="form-group mb-3">
+              <label htmlFor="puntos_commit">Puntos por Commit</label>
+              <input
+                type="number"
+                className="form-control"
+                id="puntos_commit"
+                value={config.puntos_commit}
+                onChange={e => setConfig({ ...config, puntos_commit: parseInt(e.target.value) })}
+              />
             </div>
-          </div>
+            <div className="form-group mb-3">
+              <label htmlFor="puntos_revision">Puntos por Revisión</label>
+              <input
+                type="number"
+                className="form-control"
+                id="puntos_revision"
+                value={config.puntos_revision}
+                onChange={e => setConfig({ ...config, puntos_revision: parseInt(e.target.value) })}
+              />
+            </div>
+            <div className="form-group mb-3">
+              <label htmlFor="puntos_pr_aceptado">Puntos por Pull Request Aceptado</label>
+              <input
+                type="number"
+                className="form-control"
+                id="puntos_pr_aceptado"
+                value={config.puntos_pr_aceptado}
+                onChange={e => setConfig({ ...config, puntos_pr_aceptado: parseInt(e.target.value) })}
+              />
+            </div>
+            <button type="submit" className="btn btn-success">Actualizar Configuración</button>
+          </form>
+        </div>
+      </div>
+
+      <div className="card mb-4">
+        <div className="card-header bg-info text-white">
+          Gestión de Usuarios
+        </div>
+        <div className="card-body text-center">
+          <p>Gestiona los usuarios registrados en la plataforma.</p>
+          <Link to="/admin/users/list" className="btn btn-primary me-2">Ver Usuarios</Link>
+          <Link to="/admin/users/create" className="btn btn-success">Crear Usuario</Link>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default AdminDashboard;

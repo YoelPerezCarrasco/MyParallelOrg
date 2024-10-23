@@ -41,19 +41,4 @@ def obtener_commits_juntos(db: Session, user_id_1: int, user_id_2: int) -> int:
     return result[0] if result else 0
 
 
-def obtener_dataset_interacciones(db: Session) -> pd.DataFrame:
-    interactions = db.query(UserInteractions).all()
-    data = [
-        {
-            'user_1': interaction.user_1,
-            'user_2': interaction.user_2,
-            'commits_juntos': interaction.commits_juntos,
-            'pull_requests_comentados': interaction.pull_requests_comentados,
-            'revisiones': interaction.revisiones,
-            'resultado': interaction.resultado
-        }
-        for interaction in interactions
-    ]
-    df = pd.DataFrame(data)
-    return df
 

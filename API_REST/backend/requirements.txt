@@ -13,3 +13,7 @@ passlib
 fastapi-users 
 fastapi[all]
 bcrypt
+APScheduler
+scikit-learn 
+pandas 
+joblib

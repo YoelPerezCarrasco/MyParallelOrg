@@ -44,6 +44,7 @@ class PullRequestReview(Base):
     pull_request = relationship("PullRequest", back_populates="reviews")
     reviewer = relationship("GitHubUserModel")
 
+# app/models/user.py
 
 class UserInteractions(Base):
     __tablename__ = 'user_interactions'
@@ -51,6 +52,7 @@ class UserInteractions(Base):
     user_1 = Column(Integer, ForeignKey('github_users.id'))
     user_2 = Column(Integer, ForeignKey('github_users.id'))
     commits_juntos = Column(Integer, default=0)
+    contributions_juntas = Column(Integer, default=0)
     pull_requests_comentados = Column(Integer, default=0)
     revisiones = Column(Integer, default=0)
     resultado = Column(Integer, default=0)
