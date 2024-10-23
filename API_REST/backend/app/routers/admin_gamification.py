@@ -4,15 +4,12 @@ from sqlalchemy.orm import Session
 from app.database.database import get_db
 from app.models.user import UserModel
 from app.services.auth import get_current_user
-from app.services.gamification import actualizar_puntos_usuarios, get_gamification_config, update_gamification_config
-
-
+from app.services.gamification import actualizar_puntos_usuarios, get_gamification_config
+from app.schemas.user import GamificationConfigInput
+from app.core.security import update_gamification_config
 router = APIRouter()
 
-class GamificationConfigInput(BaseModel):
-    puntos_commit: int
-    puntos_revision: int
-    puntos_pr_aceptado: int
+
 
 @router.get('/admin/gamification-config')
 async def get_config(db: Session = Depends(get_db), current_user: UserModel = Depends(get_current_user)):

@@ -7,7 +7,12 @@ from pydantic import BaseModel
 
 from app.database.database import Base
 
+class GamificationConfig(Base):
+    __tablename__ = 'gamification_config'
 
+    id = Column(Integer, primary_key=True, index=True)
+    key = Column(String, unique=True, index=True)
+    value = Column(Integer)
 class PullRequest(Base):
     __tablename__ = 'pull_requests'
 

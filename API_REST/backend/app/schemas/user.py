@@ -17,6 +17,11 @@ class LoginItem(BaseModel):
     username: str
     password: str
 
+class GamificationConfigInput(BaseModel):
+    puntos_commit: int
+    puntos_revision: int
+    puntos_pr_aceptado: int
+    
 class GitHubUserSchema(BaseModel):
     id: int
     username: str

@@ -17,16 +17,6 @@ import os
 
 router = APIRouter()
 
-# Ruta al modelo entrenado
-model_path = os.path.join(os.path.dirname(__file__), 'modelo_colaboracion.joblib')
-
-# Verificar si el modelo existe
-if not os.path.exists(model_path):
-    raise FileNotFoundError(f"El modelo entrenado no se encontró en la ruta: {model_path}")
-
-# Cargar el modelo entrenado
-model = load(model_path)
-
 class ColaboracionInput(BaseModel):
     user_1: int
     user_2: int
@@ -62,9 +52,21 @@ async def predecir_colaboracion(input_data: ColaboracionInput, db: Session = Dep
     # Convertir a DataFrame
     X = pd.DataFrame([features])
 
+    # Ruta al modelo entrenado
+    model_path = os.path.join(os.path.dirname(__file__), 'modelo_colaboracion.joblib')
+
+    # Intentar cargar el modelo entrenado
+    try:
+        model = load(model_path)
+    except FileNotFoundError:
+        raise HTTPException(status_code=500, detail="El modelo entrenado no se encontró. Por favor, entrenar el modelo antes de realizar predicciones.")
+
     # Realizar la predicción
-    prediction = model.predict(X)[0]
-    probability = model.predict_proba(X)[0][1]
+    try:
+        prediction = model.predict(X)[0]
+        probability = model.predict_proba(X)[0][1]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al realizar la predicción: {e}")
 
     return {
         'prediccion': int(prediction),

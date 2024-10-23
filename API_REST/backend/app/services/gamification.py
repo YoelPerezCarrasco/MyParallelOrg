@@ -1,8 +1,7 @@
+# app/services/gamification.py
 from sqlalchemy.orm import Session
 from app.models.user import GitHubUserModel, UserRepoCommits, PullRequestReview, PullRequest
-from app.models.config import GamificationConfig
-from app.services.gamification import get_gamification_config
-from app.models.config import GamificationConfig
+from app.core.security import get_gamification_config
 
 def calcular_puntos_usuario(db: Session, usuario: GitHubUserModel):
     config = get_gamification_config(db)
@@ -28,18 +27,7 @@ def calcular_puntos_usuario(db: Session, usuario: GitHubUserModel):
 
     return puntos
 
-
-def get_gamification_config(db: Session):
-    config = db.query(GamificationConfig).all()
-    config_dict = {item.key: item.value for item in config}
-    return config_dict
-
-def update_gamification_config(db: Session, new_config: dict):
-    for key, value in new_config.items():
-        config_item = db.query(GamificationConfig).filter_by(key=key).first()
-        if config_item:
-            config_item.value = value
-        else:
-            config_item = GamificationConfig(key=key, value=value)
-            db.add(config_item)
-    db.commit()
+def actualizar_puntos_usuarios(db: Session):
+    usuarios = db.query(GitHubUserModel).all()
+    for usuario in usuarios:
+        calcular_puntos_usuario(db, usuario)

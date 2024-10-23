@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.database.database import get_db
 from app.models.user import UserModel
 from app.services.auth import get_current_user
-from app.services.ml_training import entrenar_modelo_colaboracion
+from app.machlearn.train_model import entrenar_modelo_colaboracion
 
 router = APIRouter()
 

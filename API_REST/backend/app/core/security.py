@@ -2,6 +2,8 @@ from passlib.context import CryptContext
 from jose import jwt
 from datetime import datetime, timedelta
 from app.core.config import ALGORITHM, SECRET_KEY
+from sqlalchemy.orm import Session
+from app.models.user import GamificationConfig
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -23,3 +25,21 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+
+
+def get_gamification_config(db: Session):
+    config = db.query(GamificationConfig).all()
+    config_dict = {item.key: item.value for item in config}
+    return config_dict
+
+
+def update_gamification_config(db: Session, new_config: dict):
+    for key, value in new_config.items():
+        config_item = db.query(GamificationConfig).filter_by(key=key).first()
+        if config_item:
+            config_item.value = value
+        else:
+            config_item = GamificationConfig(key=key, value=value)
+            db.add(config_item)
+    db.commit()
