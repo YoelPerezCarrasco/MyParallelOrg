@@ -102,60 +102,91 @@ def store_repo_commit(db: Session, user: GitHubUserModel, repo_name: str, commit
 
 
 async def store_pull_request(db: Session, pr_data: dict, repo_name: str):
-    author_login = pr_data['user']['login']
-    author = db.query(GitHubUserModel).filter_by(username=author_login).first()
-    if not author:
-        # Fetch user details and store
-        user_data = await fetch_github_user_details(author_login)
-        author = await store_or_get_user(db, author_login, user_data, pr_data['base']['repo']['owner']['login'])
-    
-    pr = PullRequest(
-        repo_name=repo_name,
-        pr_number=pr_data['number'],
-        author_id=author.id,
-        created_at=pr_data['created_at'],
-        state=pr_data['state'],
-        title=pr_data['title'],
-        body=pr_data['body']
-    )
-    db.add(pr)
-    db.commit()
-    db.refresh(pr)
-    return pr
+    try:
+        # Validar la existencia de 'user' y 'login'
+        author_login = pr_data.get('user', {}).get('login')
+        if not author_login:
+            raise ValueError("Pull request data does not contain 'user' or 'login' information")
+
+        # Buscar el usuario en la base de datos
+        author = db.query(GitHubUserModel).filter_by(username=author_login).first()
+        if not author:
+            # Fetch user details and store if the user doesn't exist in the DB
+            user_data = await fetch_github_user_details(author_login)
+            # Validar la existencia de 'base' y sus subcampos
+            owner_login = pr_data.get('base', {}).get('repo', {}).get('owner', {}).get('login')
+            if not owner_login:
+                raise ValueError("Pull request data does not contain 'base.repo.owner.login' information")
+            
+            author = await store_or_get_user(db, author_login, user_data, owner_login)
+
+        # Crear el PullRequest
+        pr = PullRequest(
+            repo_name=repo_name,
+            pr_number=pr_data.get('number'),
+            author_id=author.id,
+            created_at=pr_data.get('created_at'),
+            state=pr_data.get('state'),
+            title=pr_data.get('title'),
+            body=pr_data.get('body')
+        )
+
+        db.add(pr)
+        db.commit()
+        db.refresh(pr)
+        return pr
+    except ValueError as ve:
+        logger.error(f"Validation error storing pull request for repo {repo_name}: {ve}")
+        raise
+    except Exception as e:
+        logger.error(f"Error storing pull request for repo {repo_name}: {e}")
+        raise
+
 
 async def store_pull_request_comment(db: Session, pr_id: int, comment_data: dict):
-    commenter_login = comment_data['user']['login']
-    commenter = db.query(GitHubUserModel).filter_by(username=commenter_login).first()
-    if not commenter:
-        # Fetch user details and store
-        user_data = await fetch_github_user_details(commenter_login)
-        commenter = await store_or_get_user(db, commenter_login, user_data, comment_data['user']['company'])
+    try:
+        commenter_login = comment_data['user']['login']
+        commenter = db.query(GitHubUserModel).filter_by(username=commenter_login).first()
+        if not commenter:
+            # Fetch user details and store
+            user_data = await fetch_github_user_details(commenter_login)
+            commenter_company = user_data.get('company', None)
+            commenter = await store_or_get_user(db, commenter_login, user_data, commenter_company)
 
-    comment = PullRequestComment(
-        pull_request_id=pr_id,
-        commenter_id=commenter.id,
-        comment=comment_data['body'],
-        created_at=comment_data['created_at']
-    )
-    db.add(comment)
-    db.commit()
+        comment = PullRequestComment(
+            pull_request_id=pr_id,
+            commenter_id=commenter.id,
+            comment=comment_data['body'],
+            created_at=comment_data['created_at']
+        )
+        db.add(comment)
+        db.commit()
+    except Exception as e:
+        logger.error(f"Error storing pull request comment for PR ID {pr_id}: {e}")
+        raise
 
 async def store_pull_request_review(db: Session, pr_id: int, review_data: dict):
-    reviewer_login = review_data['user']['login']
-    reviewer = db.query(GitHubUserModel).filter_by(username=reviewer_login).first()
-    if not reviewer:
-        # Fetch user details and store
-        user_data = await fetch_github_user_details(reviewer_login)
-        reviewer = await store_or_get_user(db, reviewer_login, user_data, review_data['user']['company'])
+    try:
+        reviewer_login = review_data['user']['login']
+        reviewer = db.query(GitHubUserModel).filter_by(username=reviewer_login).first()
+        if not reviewer:
+            # Fetch user details and store
+            user_data = await fetch_github_user_details(reviewer_login)
+            reviewer_company = user_data.get('company', None)
+            reviewer = await store_or_get_user(db, reviewer_login, user_data, reviewer_company)
 
-    review = PullRequestReview(
-        pull_request_id=pr_id,
-        reviewer_id=reviewer.id,
-        state=review_data['state'],
-        submitted_at=review_data['submitted_at']
-    )
-    db.add(review)
-    db.commit()
+        review = PullRequestReview(
+            pull_request_id=pr_id,
+            reviewer_id=reviewer.id,
+            state=review_data['state'],
+            submitted_at=review_data['submitted_at']
+        )
+        db.add(review)
+        db.commit()
+    except Exception as e:
+        logger.error(f"Error storing pull request review for PR ID {pr_id}: {e}")
+        raise
+
 
 
 # Lista de lenguajes de programación comunes para asignación aleatoria

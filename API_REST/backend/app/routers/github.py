@@ -94,7 +94,7 @@ async def get_org_users(org: str, db: Session = Depends(get_db)):
                 for review_data in reviews:
                     await store_pull_request_review(db, pr.id, review_data)
         except Exception as e:
-            logger.error(f"Error fetching pull requests for repo {repo_name}: {e}")
+            logger.error(f"Errorrr fetching pull requests for repo {repo_name}: {e}")
     simulate_user_locations(db)
     await update_users_with_dominant_language2(db)
 

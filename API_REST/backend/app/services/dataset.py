@@ -7,62 +7,102 @@ from app.services.interactions import obtener_pull_requests_comentados, obtener_
 from app.services.gamification import calcular_puntos_usuario
 from app.models.user import UserInteractions
 
+import logging
+
+# Configurar el logger
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 def generar_interacciones_y_dataset(db: Session, org_name: str) -> pd.DataFrame:
-    # Obtener todos los usuarios de la organización
-    users = db.query(GitHubUserModel).filter_by(organization=org_name).all()
-    user_ids = [user.id for user in users]
+    try:
+        # Obtener todos los usuarios de la organización
+        users = db.query(GitHubUserModel).filter_by(organization=org_name).all()
+        user_ids = [user.id for user in users]
+        logger.info(f"Se encontraron {len(users)} usuarios en la organización {org_name}")
 
-    data = []
+ 
 
-    for i in range(len(user_ids)):
-        for j in range(i + 1, len(user_ids)):
-            user_id_1 = user_ids[i]
-            user_id_2 = user_ids[j]
+        data = []
+        
 
-            # Calcular las interacciones
-            commits_juntos = obtener_commits_juntos(db, user_id_1, user_id_2)
-            contributions_juntas = obtener_contributions_juntas(db, user_id_1, user_id_2)
-            pull_requests_comentados = obtener_pull_requests_comentados(db, user_id_1, user_id_2)
-            revisiones = obtener_revisiones(db, user_id_1, user_id_2)
+        for i in range(len(user_ids)):
+            for j in range(i + 1, len(user_ids)):
+                user_id_1 = user_ids[i]
+                user_id_2 = user_ids[j]
 
-            # Definir el 'resultado' basado en algún criterio
-            resultado = 1 if (commits_juntos + contributions_juntas + pull_requests_comentados + revisiones) > 0 else 0
+                try:
+                    # Calcular las interacciones
+                    commits_juntos = obtener_commits_juntos(db, user_id_1, user_id_2)
+                    contributions_juntas = obtener_contributions_juntas(db, user_id_1, user_id_2)
+                    #pull_requests_comentados = obtener_pull_requests_comentados(db, user_id_1, user_id_2)
+                    #revisiones = obtener_revisiones(db, user_id_1, user_id_2)
 
-            # Almacenar en la base de datos
-            interaction = db.query(UserInteractions).filter_by(user_1=user_id_1, user_2=user_id_2).first()
-            if not interaction:
-                interaction = UserInteractions(
-                    user_1=user_id_1,
-                    user_2=user_id_2,
-                    commits_juntos=commits_juntos,
-                    contributions_juntas=contributions_juntas,
-                    pull_requests_comentados=pull_requests_comentados,
-                    revisiones=revisiones,
-                    resultado=resultado
-                )
-                db.add(interaction)
-            else:
-                interaction.commits_juntos = commits_juntos
-                interaction.contributions_juntas = contributions_juntas
-                interaction.pull_requests_comentados = pull_requests_comentados
-                interaction.revisiones = revisiones
-                interaction.resultado = resultado
+                    # Reemplaza user_id_1 y user_id_2 con IDs reales de usuarios
+                    commits_juntoss = obtener_commits_juntos(db, user_id_1, user_id_2)
+                    print(f"Commits juntos entre {user_id_1} y {user_id_2}: {commits_juntoss}")
 
-            # Añadir al dataset
-            data.append({
-                'user_1': user_id_1,
-                'user_2': user_id_2,
-                'commits_juntos': commits_juntos,
-                'contributions_juntas': contributions_juntas,
-                'pull_requests_comentados': pull_requests_comentados,
-                'revisiones': revisiones,
-                'resultado': resultado
-            })
+                    
+      
+                    logger.info(f"Interacciones entre {user_id_1} y {user_id_2}: commits_juntos={commits_juntos}, contributions_juntas={contributions_juntas}")
+        
+                except Exception as e:
+                    logger.error(f"Error al calcular interacciones entre {user_id_1} y {user_id_2}: {e}")
+                    continue
 
-    db.commit()
+                # Definir el 'resultado' basado en algún criterio
+                resultado = 1 if (commits_juntos + contributions_juntas + pull_requests_comentados + revisiones) > 0 else 0
+
+                try:
+                    # Almacenar en la base de datos
+                    interaction = db.query(UserInteractions).filter_by(user_1=user_id_1, user_2=user_id_2).first()
+                    if not interaction:
+                        interaction = UserInteractions(
+                            user_1=user_id_1,
+                            user_2=user_id_2,
+                            commits_juntos=commits_juntos,
+                            contributions_juntas=contributions_juntas,
+                            pull_requests_comentados=pull_requests_comentados,
+                            revisiones=revisiones,
+                            resultado=resultado
+                        )
+                        db.add(interaction)
+                    else:
+                        interaction.commits_juntos = commits_juntos
+                        interaction.contributions_juntas = contributions_juntas
+                        interaction.pull_requests_comentados = pull_requests_comentados
+                        interaction.revisiones = revisiones
+                        interaction.resultado = resultado
+                except Exception as e:
+                    logger.error(f"Error al almacenar interacción entre {user_id_1} y {user_id_2}: {e}")
+                    continue
+
+                # Añadir al dataset
+                data.append({
+                    'user_1': user_id_1,
+                    'user_2': user_id_2,
+                    'commits_juntos': commits_juntos,
+                    'contributions_juntas': contributions_juntas,
+                    'pull_requests_comentados': pull_requests_comentados,
+                    'revisiones': revisiones,
+                    'resultado': resultado
+                })
+
+        db.commit()
+    except Exception as e:
+        logger.error(f"Error general en la generación de interacciones y dataset para la organización {org_name}: {e}")
+        db.rollback()
+        raise
+
+    logger.info(f"Total de interacciones registradas: {len(data)}")
+
 
     # Convertir a DataFrame de pandas
-    df = pd.DataFrame(data)
+    try:
+        df = pd.DataFrame(data)
+    except Exception as e:
+        logger.error(f"Error al convertir los datos a DataFrame: {e}")
+        raise
+
     return df
 
 

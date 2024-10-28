@@ -14,7 +14,7 @@ async def train_model(db: Session = Depends(get_db), current_user: UserModel = D
 
     try:
         # Especifica el nombre de la organización si es necesario
-        org_name = 'nombre_de_tu_organizacion'
+        org_name = 'EpicGames'
         accuracy = entrenar_modelo_colaboracion(db, org_name)
         return {"message": f"Modelo entrenado con éxito. Precisión: {accuracy}"}
     except Exception as e:

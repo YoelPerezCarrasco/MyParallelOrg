@@ -1,45 +1,55 @@
 
 from sqlalchemy.orm import Session
+from app.models.user import UserRepoCommits, UserRepoContributions, PullRequestComment, PullRequestReview
+from sqlalchemy import func, distinct
 
 
+
+def obtener_revisiones(db: Session, user_id_1: int, user_id_2: int) -> int:
+    subquery = (
+        db.query(PullRequestReview.pull_request_id)
+        .filter(PullRequestReview.reviewer_id.in_([user_id_1, user_id_2]))
+        .group_by(PullRequestReview.pull_request_id)
+        .having(func.count(distinct(PullRequestReview.reviewer_id)) == 2)
+        .subquery()
+    )
+    count = db.query(func.count()).select_from(subquery).scalar()
+    return count or 0
 
 
 def obtener_pull_requests_comentados(db: Session, user_id_1: int, user_id_2: int) -> int:
-    result = db.execute("""
-        SELECT COUNT(DISTINCT c1.pull_request_id)
-        FROM pull_request_comments c1
-        JOIN pull_request_comments c2 ON c1.pull_request_id = c2.pull_request_id
-        WHERE c1.commenter_id = :user1 AND c2.commenter_id = :user2 AND c1.commenter_id != c2.commenter_id
-    """, {'user1': user_id_1, 'user2': user_id_2}).fetchone()
-    return result[0] if result else 0
+    subquery = (
+        db.query(PullRequestComment.pull_request_id)
+        .filter(PullRequestComment.commenter.in_([user_id_1, user_id_2]))
+        .group_by(PullRequestComment.pull_request_id)
+        .having(func.count(distinct(PullRequestComment.commenter)) == 2)
+        .subquery()
+    )
+    count = db.query(func.count()).select_from(subquery).scalar()
+    return count or 0
 
-def obtener_revisiones(db: Session, user_id_1: int, user_id_2: int) -> int:
-    result = db.execute("""
-        SELECT COUNT(DISTINCT r1.pull_request_id)
-        FROM pull_request_reviews r1
-        JOIN pull_request_reviews r2 ON r1.pull_request_id = r2.pull_request_id
-        WHERE r1.reviewer_id = :user1 AND r2.reviewer_id = :user2 AND r1.reviewer_id != r2.reviewer_id
-    """, {'user1': user_id_1, 'user2': user_id_2}).fetchone()
-    return result[0] if result else 0
 
 def obtener_contributions_juntas(db: Session, user_id_1: int, user_id_2: int) -> int:
-    result = db.execute("""
-        SELECT COUNT(DISTINCT c1.repo_name)
-        FROM user_repo_contributions c1
-        JOIN user_repo_contributions c2 ON c1.repo_name = c2.repo_name
-        WHERE c1.user_id = :user1 AND c2.user_id = :user2
-    """, {'user1': user_id_1, 'user2': user_id_2}).fetchone()
-    return result[0] if result else 0
+    subquery = (
+        db.query(UserRepoContributions.repo_name)
+        .filter(UserRepoContributions.user_id.in_([user_id_1, user_id_2]))
+        .group_by(UserRepoContributions.repo_name)
+        .having(func.count(distinct(UserRepoContributions.user_id)) == 2)
+        .subquery()
+    )
+    count = db.query(func.count()).select_from(subquery).scalar()
+    return count or 0
+
+
 
 def obtener_commits_juntos(db: Session, user_id_1: int, user_id_2: int) -> int:
-    result = db.execute("""
-        SELECT COUNT(DISTINCT c1.repo_name)
-        FROM user_repo_commits c1
-        JOIN user_repo_commits c2 ON c1.repo_name = c2.repo_name
-        WHERE c1.user_id = :user1 AND c2.user_id = :user2
-    """, {'user1': user_id_1, 'user2': user_id_2}).fetchone()
-    return result[0] if result else 0
-
-
-
+    subquery = (
+        db.query(UserRepoCommits.repo_name)
+        .filter(UserRepoCommits.user_id.in_([user_id_1, user_id_2]))
+        .group_by(UserRepoCommits.repo_name)
+        .having(func.count(distinct(UserRepoCommits.user_id)) == 2)
+        .subquery()
+    )
+    count = db.query(func.count()).select_from(subquery).scalar()
+    return count or 0
 
