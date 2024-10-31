@@ -4,6 +4,7 @@ from app.database.database import get_db
 from app.models.user import UserModel
 from app.services.auth import get_current_user
 from app.machlearn.train_model import entrenar_modelo_colaboracion
+from app.services.dataset import generar_interacciones_y_dataset
 
 router = APIRouter()
 
@@ -30,3 +31,13 @@ async def model_status():
         return {"status": "Modelo entrenado", "accuracy": accuracy}
     except FileNotFoundError:
         return {"status": "Modelo no entrenado", "accuracy": None}
+    
+
+
+@router.get("/generate-dataset/{org_name}")
+async def generate_dataset(org_name: str, db: Session = Depends(get_db)):
+    try:
+        df = generar_interacciones_y_dataset(db, org_name)
+        return df.to_dict(orient="records")  # Convierte el DataFrame a una lista de diccionarios
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -1,39 +1,38 @@
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './../styles/Homepage.css';
 
 const Homepage: React.FC = () => {
   return (
-    <div style={{ height: '100vh', width: '100vw', position: 'relative', backgroundColor: '#2c2c2c' }}>
-      {/* RetroGrid Component as Background */}
-      {/* Puedes añadir el componente RetroGrid aquí si es necesario */}
+    <div className="homepage-wrapper">
+       <div className="overlay"></div>
 
-      <main role="main" className="relative z-10 d-flex flex-column justify-content-start align-items-center text-center h-100" style={{ paddingTop: '20px' }}>
-        {/* Main jumbotron for a primary marketing message or call to action */}
-        <div className="jumbotron bg-transparent text-white">
-          <div className="container" style={{ marginTop: '100px' }}>
-            <h1 className="display-3 mb-4" >Bienvenido a MyParallelOrg</h1>
-            <p className="lead"  style={{ marginTop: '50px' }}>
-              La herramienta definitiva para gestionar tu organización y visualizar relaciones entre colaboradores.
-            </p>
-            <p>
-              MyParallelOrg te permite administrar usuarios, asignar roles y explorar redes colaborativas en 3D para optimizar el trabajo en equipo.
-            </p>
-            <p>
-              <a className="btn btn-primary btn-lg" style={{ marginTop: '10px' }} href="/login" role="button">
-                Comenzar »
-              </a>
-            </p>
-          </div>
+      <main
+        role="main"
+        className="main-content d-flex flex-column justify-content-start align-items-center text-center pt-2"
+      >
+        <div className="container bg-transparent text-white mt-custom">
+          <h1 className="display-3 mb-4">Bienvenido a MyParallelOrg</h1>
+          <p className="lead mt-50">
+            La herramienta definitiva para gestionar tu organización y visualizar relaciones entre colaboradores.
+          </p>
+          <p>
+            MyParallelOrg te permite administrar usuarios, asignar roles y explorar redes colaborativas en 3D para optimizar el trabajo en equipo.
+          </p>
+          <p>
+            <a className="btn btn-primary btn-lg mt-2" href="/login" role="button">
+              Comenzar »
+            </a>
+          </p>
         </div>
-        <div className="container" style={{ marginTop: '70px' }}>
-          {/* Example row of columns */}
+
+        <div className="container mt-50">
           <div className="row">
             <div className="col-md-4">
               <h2 className="text-white">Gestión de Usuarios</h2>
               <p className="text-white">
                 Administra de manera eficiente los usuarios de tu organización. Controla el acceso, asigna roles de administrador o usuario, y gestiona los permisos de cada miembro.
               </p>
-              
             </div>
             <div className="col-md-4">
               <h2 className="text-white">Visualización de Redes</h2>
@@ -60,17 +59,14 @@ const Homepage: React.FC = () => {
           </div>
         </div>
       </main>
+
       <footer className="bg-light text-center text-lg-start">
-          <div
-            className="text-center p-3"
-            style={{ backgroundColor: "rgba(0, 0, 0, 0.2)" }}
-          >
-            © 2024 - Yoel Pérez Carrasco
-            
-          </div>
-        </footer>
+        <div className="text-center p-4 footer-bg">
+          © 2024 - Yoel Pérez Carrasco
+        </div>
+      </footer>
     </div>
   );
-}
+};
 
 export default Homepage;

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import Modal from 'react-bootstrap/Modal';
+import Button from 'react-bootstrap/Button';
 
 interface Organization {
   id: string;
@@ -19,6 +21,7 @@ const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [modelStatus, setModelStatus] = useState<{ status: string; accuracy: string | null }>({ status: '', accuracy: null });
   const [config, setConfig] = useState<GamificationConfig>({ puntos_commit: 10, puntos_revision: 5, puntos_pr_aceptado: 20 });
+  const [showLoadingModal, setShowLoadingModal] = useState<boolean>(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,18 +49,23 @@ const AdminDashboard: React.FC = () => {
 
   const fetchOrganizations = () => {
     setLoading(true);
+    setShowLoadingModal(true);
     fetch('http://localhost:8000/github/organizations')
       .then(response => response.json())
       .then(data => {
         setOrganizations(data);
       })
       .catch(error => console.error('Error fetching organizations:', error))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        setShowLoadingModal(false);
+      });
   };
 
   const handleAddOrganization = () => {
     if (newOrg) {
       setLoading(true);
+      setShowLoadingModal(true);
       fetch(`http://localhost:8000/github/org-users2/${newOrg}`, {
         method: 'GET',
       })
@@ -76,7 +84,10 @@ const AdminDashboard: React.FC = () => {
           setNewOrg('');
         })
         .catch(error => console.error('Error:', error))
-        .finally(() => setLoading(false));
+        .finally(() => {
+          setLoading(false);
+          setShowLoadingModal(false);
+        });
     }
   };
 
@@ -126,84 +137,91 @@ const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="container mt-5">
-      <h2 className="mb-4 text-center">Panel de Administración</h2>
+    <div className="container-fluid" style={{ backgroundColor: '#000000', color: '#e0e0e0', minHeight: '100vh' }}>
+      <h2 className="mb-4 text-center display-4">Panel de Administración</h2>
 
-      <div className="card mb-4">
-        <div className="card-header bg-primary text-white">
+      <Modal show={showLoadingModal} centered>
+        <Modal.Body className="bg-dark text-white text-center" style={{ width: '400px', margin: 'auto' }}>
+          <div className="spinner-border text-light mb-3" role="status"></div>
+          <h4>Esperando mientras se cargan los datos de la empresa, esto puede tardar unos minutos...</h4>
+        </Modal.Body>
+      </Modal>
+
+      <div className="card mb-4 bg-dark text-white border-0 shadow-lg">
+        <div className="card-header bg-secondary text-white border-0">
           Estado del Modelo de Machine Learning
         </div>
         <div className="card-body">
-          <p><strong>Estado:</strong> {modelStatus.status}</p>
-          {modelStatus.accuracy && <p><strong>Precisión:</strong> {modelStatus.accuracy}</p>}
-          <button className="btn btn-primary me-2" onClick={trainModel}>Entrenar Modelo</button>
-          <button className="btn btn-secondary" onClick={updatePoints}>Actualizar Puntos de Usuarios</button>
+          <p className="h5"><strong>Estado:</strong> {modelStatus.status}</p>
+          {modelStatus.accuracy && <p className="h5"><strong>Precisión:</strong> {modelStatus.accuracy}</p>}
+          <button className="btn btn-outline-light btn-lg me-2 mt-3" onClick={trainModel}>Entrenar Modelo</button>
+          <button className="btn btn-outline-light btn-lg mt-3" onClick={updatePoints}>Actualizar Puntos de Usuarios</button>
         </div>
       </div>
 
-      <div className="card mb-4">
-        <div className="card-header bg-success text-white">
+      <div className="card mb-4 bg-dark text-white border-0 shadow-lg">
+        <div className="card-header bg-secondary text-white border-0">
           Configuración de Gamificación
         </div>
         <div className="card-body">
           <form onSubmit={updateConfig}>
-            <div className="form-group mb-3">
-              <label htmlFor="puntos_commit">Puntos por Commit</label>
+            <div className="form-group mb-4">
+              <label htmlFor="puntos_commit" className="h5">Puntos por Commit</label>
               <input
                 type="number"
-                className="form-control"
+                className="form-control form-control-lg bg-dark text-white border-secondary"
                 id="puntos_commit"
                 value={config.puntos_commit}
                 onChange={e => setConfig({ ...config, puntos_commit: parseInt(e.target.value) })}
               />
             </div>
-            <div className="form-group mb-3">
-              <label htmlFor="puntos_revision">Puntos por Revisión</label>
+            <div className="form-group mb-4">
+              <label htmlFor="puntos_revision" className="h5">Puntos por Revisión</label>
               <input
                 type="number"
-                className="form-control"
+                className="form-control form-control-lg bg-dark text-white border-secondary"
                 id="puntos_revision"
                 value={config.puntos_revision}
                 onChange={e => setConfig({ ...config, puntos_revision: parseInt(e.target.value) })}
               />
             </div>
-            <div className="form-group mb-3">
-              <label htmlFor="puntos_pr_aceptado">Puntos por Pull Request Aceptado</label>
+            <div className="form-group mb-4">
+              <label htmlFor="puntos_pr_aceptado" className="h5">Puntos por Pull Request Aceptado</label>
               <input
                 type="number"
-                className="form-control"
+                className="form-control form-control-lg bg-dark text-white border-secondary"
                 id="puntos_pr_aceptado"
                 value={config.puntos_pr_aceptado}
                 onChange={e => setConfig({ ...config, puntos_pr_aceptado: parseInt(e.target.value) })}
               />
             </div>
-            <button type="submit" className="btn btn-success">Actualizar Configuración</button>
+            <button type="submit" className="btn btn-outline-light btn-lg">Actualizar Configuración</button>
           </form>
         </div>
       </div>
 
-      <div className="card mb-4">
-        <div className="card-header bg-info text-white">
+      <div className="card mb-4 bg-dark text-white border-0 shadow-lg">
+        <div className="card-header bg-secondary text-white border-0">
           Gestión de Usuarios
         </div>
         <div className="card-body text-center">
-          <p>Gestiona los usuarios registrados en la plataforma.</p>
-          <Link to="/admin/users/list" className="btn btn-primary me-2">Ver Usuarios</Link>
-          <Link to="/admin/users/create" className="btn btn-success">Crear Usuario</Link>
+          <p className="h5">Gestiona los usuarios registrados en la plataforma.</p>
+          <Link to="/admin/users/list" className="btn btn-outline-light btn-lg me-2 mt-3">Ver Usuarios</Link>
+          <Link to="/admin/users/create" className="btn btn-outline-light btn-lg mt-3">Crear Usuario</Link>
         </div>
       </div>
 
-      <div className="card mb-4">
-        <div className="card-header bg-warning text-dark">
+      <div className="card mb-4 bg-dark text-white border-0 shadow-lg">
+        <div className="card-header bg-secondary text-white border-0">
           Gestionar Organizaciones
         </div>
         <div className="card-body">
           <h5 className="card-title">Selecciona o Añade una Organización</h5>
-          <div className="mb-3">
-            <label htmlFor="organizationSelect" className="form-label">Organización</label>
+          <div className="mb-4">
+            <label htmlFor="organizationSelect" className="form-label h5">Organización</label>
             <select
               id="organizationSelect"
-              className="form-select"
+              className="form-select form-select-lg bg-dark text-white border-secondary"
               value={selectedOrg || ''}
               onChange={e => setSelectedOrg(e.target.value)}
               disabled={loading}
@@ -214,9 +232,9 @@ const AdminDashboard: React.FC = () => {
               ))}
             </select>
           </div>
-          <div className="d-grid mb-3">
+          <div className="d-grid mb-4">
             <button
-              className="btn btn-primary"
+              className="btn btn-outline-light btn-lg"
               onClick={handleViewGraph}
               disabled={!selectedOrg || loading}
             >
@@ -224,15 +242,15 @@ const AdminDashboard: React.FC = () => {
             </button>
           </div>
 
-          <hr />
+          <hr className="bg-secondary" />
 
           <h5 className="card-title">Añadir Nueva Organización</h5>
-          <div className="mb-3">
-            <label htmlFor="newOrgInput" className="form-label">Nombre de la nueva organización</label>
+          <div className="mb-4">
+            <label htmlFor="newOrgInput" className="form-label h5">Nombre de la nueva organización</label>
             <input
               type="text"
               id="newOrgInput"
-              className="form-control"
+              className="form-control form-control-lg bg-dark text-white border-secondary"
               value={newOrg}
               onChange={e => setNewOrg(e.target.value)}
               placeholder="Introduce el nombre"
@@ -241,7 +259,7 @@ const AdminDashboard: React.FC = () => {
           </div>
           <div className="d-grid">
             <button
-              className="btn btn-success"
+              className="btn btn-outline-light btn-lg"
               onClick={handleAddOrganization}
               disabled={!newOrg || loading}
             >
@@ -250,12 +268,6 @@ const AdminDashboard: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {loading && (
-        <div className="text-center mt-3">
-          <div className="spinner-border text-primary" role="status"></div>
-        </div>
-      )}
     </div>
   );
 };

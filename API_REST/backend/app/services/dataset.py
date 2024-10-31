@@ -50,7 +50,7 @@ def generar_interacciones_y_dataset(db: Session, org_name: str) -> pd.DataFrame:
                     continue
 
                 # Definir el 'resultado' basado en algún criterio
-                resultado = 1 if (commits_juntos + contributions_juntas + pull_requests_comentados + revisiones) > 0 else 0
+                resultado = 1 if (commits_juntos + contributions_juntas) > 0 else 0
 
                 try:
                     # Almacenar en la base de datos
@@ -61,16 +61,16 @@ def generar_interacciones_y_dataset(db: Session, org_name: str) -> pd.DataFrame:
                             user_2=user_id_2,
                             commits_juntos=commits_juntos,
                             contributions_juntas=contributions_juntas,
-                            pull_requests_comentados=pull_requests_comentados,
-                            revisiones=revisiones,
+                            pull_requests_comentados=" ",
+                            revisiones=" ",
                             resultado=resultado
                         )
                         db.add(interaction)
                     else:
                         interaction.commits_juntos = commits_juntos
                         interaction.contributions_juntas = contributions_juntas
-                        interaction.pull_requests_comentados = pull_requests_comentados
-                        interaction.revisiones = revisiones
+                        interaction.pull_requests_comentados = " "
+                        interaction.revisiones = " "
                         interaction.resultado = resultado
                 except Exception as e:
                     logger.error(f"Error al almacenar interacción entre {user_id_1} y {user_id_2}: {e}")
@@ -82,8 +82,8 @@ def generar_interacciones_y_dataset(db: Session, org_name: str) -> pd.DataFrame:
                     'user_2': user_id_2,
                     'commits_juntos': commits_juntos,
                     'contributions_juntas': contributions_juntas,
-                    'pull_requests_comentados': pull_requests_comentados,
-                    'revisiones': revisiones,
+                    'pull_requests_comentados': "pull_requests_comentados",
+                    'revisiones': "revisiones",
                     'resultado': resultado
                 })
 

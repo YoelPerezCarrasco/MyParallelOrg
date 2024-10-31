@@ -11,6 +11,8 @@ interface AuthContextType {
   registerUser: (rol: string, username: string, password: string, companyName: string) => Promise<void>;
   loginUser: (username: string, password: string) => Promise<void>;
   logoutUser: () => void;
+  isAuthenticated: boolean;  // Agregado aquí
+
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -177,6 +179,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     registerUser,
     loginUser,
     logoutUser,
+    isAuthenticated: !!authTokens, // Nuevo indicador de autenticación
+
   };
 
   useEffect(() => {
