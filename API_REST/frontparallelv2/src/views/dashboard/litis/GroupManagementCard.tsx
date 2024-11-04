@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Typography, TextField, Button, Select, MenuItem, Box, Snackbar, Alert } from '@mui/material';
+import { Card, CardContent, Typography, Button, MenuItem, Select, Snackbar, Alert } from '@mui/material';
+import LoadingModal from './LoadingModal'; // Asegúrate de tener un componente de carga si es necesario
 import { useNavigate } from 'react-router-dom';
-import LoadingModal from './LoadingModal';
 
 interface Organization {
   id: string;
   name: string;
 }
 
-const OrganizationManagementCard: React.FC = () => {
+const GroupManagementCard: React.FC = () => {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
-  const [newOrg, setNewOrg] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [showLoadingModal, setShowLoadingModal] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,59 +18,54 @@ const OrganizationManagementCard: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchOrganizations();
+    fetchCompanies();
   }, []);
 
-  const fetchOrganizations = () => {
+  const fetchCompanies = () => {
     setLoading(true);
     fetch('http://localhost:8000/github/organizations')
       .then((response) => response.json())
-      .then((data) => {
-        setOrganizations(data);
-      })
+      .then((data) => setOrganizations(data))
       .catch((error) => setError('Error al obtener las organizaciones.'))
       .finally(() => setLoading(false));
   };
 
-  const handleAddOrganization = () => {
-    if (!newOrg.trim()) {
-      setError('El nombre de la organización no puede estar vacío.');
+  const handleGenerateGroups = () => {
+    if (!selectedOrg) {
+      setError('Debe seleccionar una organización.');
       return;
     }
 
     setLoading(true);
-    fetch(`http://localhost:8000/github/org-users2/${newOrg}`, { method: 'GET' })
+    setShowLoadingModal(true);
+    fetch(`http://localhost:8000/workgroups/manager/groups/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ org: selectedOrg }),  // Asegúrate de enviar el nombre de la organización
+    })
       .then((response) => {
         if (response.ok) {
-          return fetch('http://localhost:8000/github/organizations');
+          setSuccess(true);
         } else {
-          throw new Error('Error al agregar la organización');
+          throw new Error('Error al generar los grupos.');
         }
       })
-      .then((response) => response.json())
-      .then((data) => {
-        setOrganizations(data);
-        setSelectedOrg(newOrg);
-        setNewOrg('');
-        setSuccess(true);
-      })
-      .catch(() => setError('Error al añadir la organización.'))
-      .finally(() => setLoading(false));
-  };
-
-  const handleViewGraph = () => {
-    if (selectedOrg) {
-      navigate(`/graphs/${selectedOrg}`);
-    }
+      .catch((error) => setError(error.message))
+      .finally(() => {
+        setLoading(false);
+        setShowLoadingModal(false);
+      });
   };
 
   return (
     <Card sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Typography variant="h5" gutterBottom>
-        Gestionar Organizaciones
+        Gestionar Grupos
       </Typography>
       <Typography variant="body1" gutterBottom>
-        Selecciona o Añade una Organización
+        Selecciona una Organización
       </Typography>
 
       <Select
@@ -84,7 +78,7 @@ const OrganizationManagementCard: React.FC = () => {
           Selecciona una organización
         </MenuItem>
         {organizations.map((org) => (
-          <MenuItem key={org.id} value={org.id}>
+          <MenuItem key={org.id} value={org.name}>
             {org.name}
           </MenuItem>
         ))}
@@ -93,33 +87,15 @@ const OrganizationManagementCard: React.FC = () => {
       <Button
         variant="contained"
         color="primary"
-        onClick={handleViewGraph}
+        onClick={handleGenerateGroups}
         disabled={!selectedOrg || loading}
         sx={{ mt: 2 }}
       >
-        Ver Gráfico de la Organización
-      </Button>
-
-      <TextField
-        label="Nombre de la nueva organización"
-        value={newOrg}
-        onChange={(e) => setNewOrg(e.target.value)}
-        fullWidth
-        margin="normal"
-      />
-
-      <Button
-        variant="outlined"
-        color="secondary"
-        onClick={handleAddOrganization}
-        disabled={loading}
-      >
-        Añadir Organización
+        Generar Grupos
       </Button>
 
       <LoadingModal open={showLoadingModal} />
 
-      {/* Notificaciones de éxito y error */}
       <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError(null)}>
         <Alert onClose={() => setError(null)} severity="error">
           {error}
@@ -127,11 +103,11 @@ const OrganizationManagementCard: React.FC = () => {
       </Snackbar>
       <Snackbar open={success} autoHideDuration={6000} onClose={() => setSuccess(false)}>
         <Alert onClose={() => setSuccess(false)} severity="success">
-          Organización añadida con éxito.
+          Grupos generados con éxito.
         </Alert>
       </Snackbar>
     </Card>
   );
 };
 
-export default OrganizationManagementCard;
+export default GroupManagementCard;

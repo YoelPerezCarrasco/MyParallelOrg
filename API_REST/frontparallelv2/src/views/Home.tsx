@@ -5,7 +5,7 @@ import './../styles/Homepage.css';
 const Homepage: React.FC = () => {
   return (
     <div className="homepage-wrapper">
-       <div className="overlay"></div>
+      <div className="overlay"></div>
 
       <main
         role="main"
@@ -28,13 +28,13 @@ const Homepage: React.FC = () => {
 
         <div className="container mt-50">
           <div className="row">
-            <div className="col-md-4">
+            <div className="col-md-4 col-sm-12 mb-4">
               <h2 className="text-white">Gestión de Usuarios</h2>
               <p className="text-white">
                 Administra de manera eficiente los usuarios de tu organización. Controla el acceso, asigna roles de administrador o usuario, y gestiona los permisos de cada miembro.
               </p>
             </div>
-            <div className="col-md-4">
+            <div className="col-md-4 col-sm-12 mb-4">
               <h2 className="text-white">Visualización de Redes</h2>
               <p className="text-white">
                 Visualiza las conexiones entre los miembros de tu organización en un grafo 3D. Identifica equipos de trabajo basados en tecnologías compartidas, ubicación geográfica y reputación.
@@ -45,7 +45,7 @@ const Homepage: React.FC = () => {
                 </a>
               </p>
             </div>
-            <div className="col-md-4">
+            <div className="col-md-4 col-sm-12 mb-4">
               <h2 className="text-white">Despliegue con Docker</h2>
               <p className="text-white">
                 La infraestructura de MyParallelOrg está desplegada utilizando Docker, garantizando un entorno estable y reproducible para todos los componentes del sistema.

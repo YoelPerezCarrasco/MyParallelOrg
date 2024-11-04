@@ -1,59 +1,111 @@
-from typing import Optional
-from sqlalchemy.orm import Session
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
+import os
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import GroupShuffleSplit
 from sklearn.exceptions import NotFittedError
 from joblib import dump
-from app.services.dataset import generar_interacciones_y_dataset
 import logging
-import pandas as pd
+from sklearn.metrics import (classification_report, confusion_matrix, roc_auc_score,
+                             precision_score, recall_score, f1_score)
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
 
-# Configurar el logger
-logger = logging.getLogger(__name__)
-
-
-def entrenar_modelo_colaboracion(db: Session, org_name: str) -> Optional[float]:
+def entrenar_modelo_colaboracion():
     try:
-        # Generar interacciones y obtener el dataset
-        df = generar_interacciones_y_dataset(db, org_name)
+        # Configurar el logger
+        logging.basicConfig(level=logging.INFO)
+        logger = logging.getLogger(__name__)
         
-        # Verificar que el dataframe no esté vacío
+        logger.info("Iniciando el entrenamiento del modelo de colaboración")
+    
+        # Definir el directorio de modelos
+        model_dir = '/app/modelos'
+        os.makedirs(model_dir, exist_ok=True)
+    
+        # Leer el dataset desde el archivo CSV
+        csv_file_path = os.path.join(model_dir, 'simulated_interacciones.csv')
+        logger.info(f"Leyendo el dataset desde '{csv_file_path}'")
+        df = pd.read_csv(csv_file_path)
+    
+        # Verificar que el DataFrame no esté vacío
         if df.empty:
-            logger.error("El dataset está vacío.")
+            logger.error("El DataFrame está vacío.")
             return None
 
-        # Verificar que las columnas necesarias existen en el dataset
-        required_columns = ['commits_juntos', 'contributions_juntas', 'pull_requests_comentados', 'revisiones', 'resultado']
-        if not all(col in df.columns for col in required_columns):
-            logger.error("El dataset no contiene todas las columnas necesarias.")
-            return None
+        # Verificar la distribución de la variable objetivo
+        class_distribution = df['resultado'].value_counts()
+        logger.info(f"Distribución de clases en 'resultado':\n{class_distribution}")
 
+        # Calcular la matriz de correlación
+        corr_matrix = df[['commits_juntos', 'contributions_juntas', 'pull_requests_comentados', 'revisiones', 'resultado']].corr()
+        logger.info(f"Matriz de correlación:\n{corr_matrix['resultado'].sort_values(ascending=False)}")
+
+        # Si hay características con correlación muy alta, considerar eliminarlas
+        # Por ejemplo, eliminar 'commits_juntos' si está perfectamente correlacionada
+        # df = df.drop(columns=['commits_juntos'])
+
+        # Crear una columna de grupo basada en 'user_2' para evitar fugas de datos
+        df['grupo'] = df['user_2']
+    
         # Separar características y etiqueta
         X = df[['commits_juntos', 'contributions_juntas', 'pull_requests_comentados', 'revisiones']]
         y = df['resultado']
+        groups = df['grupo']
+    
+        # Dividir los datos en conjuntos de entrenamiento y prueba utilizando GroupShuffleSplit
+        gss = GroupShuffleSplit(n_splits=1, test_size=0.3, random_state=42)
+        train_idx, test_idx = next(gss.split(X, y, groups=groups))
+        X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
+        y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
 
-        # Dividir en conjuntos de entrenamiento y prueba
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        
-        # Crear y entrenar el modelo
-        model = RandomForestClassifier(n_estimators=100, random_state=42)
-        model.fit(X_train, y_train)
-
-        # Evaluar el modelo
-        accuracy = model.score(X_test, y_test)
-        logger.info(f"Modelo entrenado con precisión: {accuracy:.4f}")
-
-        # Guardar el modelo entrenado
-        dump(model, 'modelo_colaboracion.joblib')
-        logger.info("Modelo guardado exitosamente en 'modelo_colaboracion.joblib'")
-
-        # Guardar la precisión en un archivo para su uso posterior
-        with open('model_accuracy.txt', 'w') as f:
-            f.write(str(accuracy))
-        logger.info("Precisión guardada exitosamente en 'model_accuracy.txt'")
-
-        return accuracy
-
+        # Verificar que no haya usuarios comunes en 'user_2' entre entrenamiento y prueba
+        train_users = set(df['user_2'].iloc[train_idx])
+        test_users = set(df['user_2'].iloc[test_idx])
+        common_users = train_users.intersection(test_users)
+        if common_users:
+            logger.error(f"Hay usuarios comunes entre entrenamiento y prueba: {common_users}")
+            return None
+        else:
+            logger.info("No hay usuarios comunes entre entrenamiento y prueba.")
+    
+        # Verificar la distribución de clases en el conjunto de entrenamiento
+        class_distribution_train = y_train.value_counts()
+        logger.info(f"Distribución de clases en entrenamiento:\n{class_distribution_train}")
+        class_distribution_test = y_test.value_counts()
+        logger.info(f"Distribución de clases en prueba:\n{class_distribution_test}")
+    
+        # Escalar las características
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+    
+        # Entrenar un modelo de Regresión Logística
+        model = LogisticRegression(max_iter=1000, random_state=42)
+        model.fit(X_train_scaled, y_train)
+    
+        # Evaluar el modelo en el conjunto de prueba
+        y_test_pred = model.predict(X_test_scaled)
+        y_test_proba = model.predict_proba(X_test_scaled)[:, 1]
+    
+        test_accuracy = model.score(X_test_scaled, y_test)
+        test_precision = precision_score(y_test, y_test_pred)
+        test_recall = recall_score(y_test, y_test_pred)
+        test_f1 = f1_score(y_test, y_test_pred)
+        test_auc = roc_auc_score(y_test, y_test_proba)
+        test_report = classification_report(y_test, y_test_pred)
+        test_cm = confusion_matrix(y_test, y_test_pred)
+        logger.info(f"Precisión del modelo en prueba: {test_accuracy:.4f}")
+        logger.info(f"Precisión: {test_precision:.4f}, Recall: {test_recall:.4f}, F1-score: {test_f1:.4f}, AUC: {test_auc:.4f}")
+        logger.info(f"Reporte de clasificación en prueba:\n{test_report}")
+        logger.info(f"Matriz de confusión en prueba:\n{test_cm}")
+    
+        # Guardar el modelo
+        model_path = os.path.join(model_dir, 'modelo_colaboracion.joblib')
+        dump(model, model_path)
+        logger.info("Modelo guardado exitosamente")
+    
+        return test_accuracy
+    
     except FileNotFoundError as e:
         logger.error(f"Error al guardar el archivo: {e}")
         return None

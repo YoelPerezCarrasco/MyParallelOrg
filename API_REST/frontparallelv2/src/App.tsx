@@ -15,6 +15,7 @@ import Setting from './views/Setting';
 import ManagerDashboard from './views/ManagerDashboard';
 import { RequireManagerToken } from './utils/RequireManagerToken';
 import Layout1Topbar from './components/Layout/Layout1TopBar';
+import { styled } from '@mui/material/styles';
 
 // index.js o index.tsx
 
@@ -22,10 +23,32 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min';
 import CssBaseline from "@mui/material/CssBaseline";
 
+const RootContainer = styled('div')({
+  /* Scrollbar estilos globales */
+  '&::-webkit-scrollbar': {
+    width: '8px',
+  },
+  '&::-webkit-scrollbar-track': {
+    background: '#1e1e1e',
+    borderRadius: '10px',
+  },
+  '&::-webkit-scrollbar-thumb': {
+    backgroundColor: '#444',
+    borderRadius: '10px',
+    border: '2px solid #1e1e1e',
+  },
+  '&::-webkit-scrollbar-thumb:hover': {
+    backgroundColor: '#555',
+  },
+  /* Estilos para Firefox */
+  scrollbarWidth: 'thin',
+  scrollbarColor: '#444 #1e1e1e',
+});
 
 
 const App: React.FC = () => {
   return (
+    <RootContainer>
     <AuthProvider>
       <Layout1Topbar />
         <Navbar />
@@ -63,6 +86,7 @@ const App: React.FC = () => {
       </Routes>
       </section>
     </AuthProvider>
+    </RootContainer>
   );
 }
 

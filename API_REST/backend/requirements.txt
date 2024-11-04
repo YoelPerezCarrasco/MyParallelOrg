@@ -17,3 +17,5 @@ APScheduler
 scikit-learn 
 pandas 
 joblib
+seaborn
+imblearn

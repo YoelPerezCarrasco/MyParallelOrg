@@ -1,7 +1,6 @@
-/* Homepage.css */
 .homepage-wrapper {
   height: 90vh;
-  width: 100vw;
+  width: 94.8vw;
   position: relative;
   background-color: #2c2c2c;
   background-image: url('./../styles/ff.webp'); /* Reemplaza con la ruta de tu imagen */
@@ -9,7 +8,6 @@
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
-  padding-left: 4.5%;
 }
 
 .overlay {
@@ -25,12 +23,11 @@
 .main-content {
   position: relative;
   z-index: 50;
-  height: 99.1%;
-  padding-top: 100px;
+  padding-top: 50px;
 }
 
 .mt-custom {
-  margin-top: 200px;
+  margin-top: 100px;
 }
 
 .mt-50 {
@@ -43,4 +40,84 @@
 
 .footer-bg {
   background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Ajustes responsivos */
+@media (max-width: 1200px) {
+  .homepage-wrapper {
+    padding-left: 3%;
+  }
+  .mt-custom {
+    margin-top: 150px;
+  }
+  .mt-50 {
+    margin-top: 60px;
+  }
+  .mt-70 {
+    margin-top: 120px;
+  }
+}
+
+@media (max-width: 768px) {
+  .homepage-wrapper {
+    height: auto;
+    padding-left: 2%;
+    padding-right: 2%;
+  }
+
+  .main-content {
+    padding-top: 50px;
+    height: auto;
+  }
+
+  .mt-custom {
+    margin-top: 100px;
+  }
+
+  .display-3 {
+    font-size: 2rem;
+  }
+
+  .lead {
+    font-size: 1rem;
+  }
+
+  .mt-50 {
+    margin-top: 40px;
+  }
+
+  .mt-70 {
+    margin-top: 80px;
+  }
+}
+
+@media (max-width: 576px) {
+  .homepage-wrapper {
+    padding-left: 1%;
+    padding-right: 1%;
+  }
+
+  .main-content {
+    padding-top: 30px;
+  }
+
+  .display-3 {
+    font-size: 1.8rem;
+  }
+
+  .lead {
+    font-size: 0.9rem;
+  }
+
+  .mt-custom {
+    margin-top: 50px;
+  }
+
+  .mt-50 {
+    margin-top: 20px;
+  }
+
+  .mt-70 {
+    margin-top: 40px;
+  }
 }

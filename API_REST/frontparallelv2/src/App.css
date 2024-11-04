@@ -7,3 +7,28 @@
   align-items: center;
   background-color: #f0f0f0;
 }
+
+/* Estilos globales para el scrollbar en toda la aplicación */
+html {
+  scrollbar-width: thin; /* Scrollbar más delgado (Firefox) */
+  scrollbar-color: #444 #1e1e1e; /* Color del thumb y del track en Firefox */
+}
+
+::-webkit-scrollbar {
+  width: 8px; /* Ancho del scrollbar */
+}
+
+::-webkit-scrollbar-track {
+  background: #1e1e1e; /* Color del track del scrollbar */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #444; /* Color de la barra de desplazamiento */
+  border-radius: 10px;
+  border: 2px solid #1e1e1e; /* Espacio alrededor del scrollbar */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #555; /* Color cuando el usuario interactúa con el scrollbar */
+}

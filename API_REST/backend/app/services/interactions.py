@@ -18,15 +18,18 @@ def obtener_revisiones(db: Session, user_id_1: int, user_id_2: int) -> int:
 
 
 def obtener_pull_requests_comentados(db: Session, user_id_1: int, user_id_2: int) -> int:
+    # Subquery para obtener los IDs de pull requests donde ambos usuarios han comentado
     subquery = (
         db.query(PullRequestComment.pull_request_id)
-        .filter(PullRequestComment.commenter.in_([user_id_1, user_id_2]))
+        .filter(PullRequestComment.commenter_id.in_([user_id_1, user_id_2]))  # Usar commenter_id en lugar de commenter
         .group_by(PullRequestComment.pull_request_id)
-        .having(func.count(distinct(PullRequestComment.commenter)) == 2)
+        .having(func.count(distinct(PullRequestComment.commenter_id)) == 2)
         .subquery()
     )
+    # Contar el número de pull requests en los que ambos usuarios han comentado
     count = db.query(func.count()).select_from(subquery).scalar()
     return count or 0
+
 
 
 def obtener_contributions_juntas(db: Session, user_id_1: int, user_id_2: int) -> int:

@@ -8,6 +8,9 @@ services:
       - db
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/mydatabase
+    volumes:
+      - modelos:/app/modelos  # Monta el directorio 'modelos' en el contenedor
+      - data:/app/data  # Monta el directorio 'data' en el contenedor
 
   db:
     image: postgres:latest
@@ -28,3 +31,5 @@ services:
 
 volumes:
   postgres_data:
+  modelos:
+  data:

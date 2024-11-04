@@ -101,7 +101,7 @@ def store_repo_commit(db: Session, user: GitHubUserModel, repo_name: str, commit
 
 
 
-async def store_pull_request(db: Session, pr_data: dict, repo_name: str):
+async def store_pull_request(db: Session, pr_data: dict, repo_name: str, org_name: str):
     try:
         # Validar la existencia de 'user' y 'login'
         author_login = pr_data.get('user', {}).get('login')
@@ -118,7 +118,7 @@ async def store_pull_request(db: Session, pr_data: dict, repo_name: str):
             if not owner_login:
                 raise ValueError("Pull request data does not contain 'base.repo.owner.login' information")
             
-            author = await store_or_get_user(db, author_login, user_data, owner_login)
+            author = await store_or_get_user(db, author_login, user_data, org_name)
 
         # Crear el PullRequest
         pr = PullRequest(
@@ -143,7 +143,7 @@ async def store_pull_request(db: Session, pr_data: dict, repo_name: str):
         raise
 
 
-async def store_pull_request_comment(db: Session, pr_id: int, comment_data: dict):
+async def store_pull_request_comment(db: Session, pr_id: int, comment_data: dict, org_name: str):
     try:
         commenter_login = comment_data['user']['login']
         commenter = db.query(GitHubUserModel).filter_by(username=commenter_login).first()
@@ -151,7 +151,7 @@ async def store_pull_request_comment(db: Session, pr_id: int, comment_data: dict
             # Fetch user details and store
             user_data = await fetch_github_user_details(commenter_login)
             commenter_company = user_data.get('company', None)
-            commenter = await store_or_get_user(db, commenter_login, user_data, commenter_company)
+            commenter = await store_or_get_user(db, commenter_login, user_data, org_name)
 
         comment = PullRequestComment(
             pull_request_id=pr_id,
@@ -165,7 +165,7 @@ async def store_pull_request_comment(db: Session, pr_id: int, comment_data: dict
         logger.error(f"Error storing pull request comment for PR ID {pr_id}: {e}")
         raise
 
-async def store_pull_request_review(db: Session, pr_id: int, review_data: dict):
+async def store_pull_request_review(db: Session, pr_id: int, review_data: dict, org_name: str):
     try:
         reviewer_login = review_data['user']['login']
         reviewer = db.query(GitHubUserModel).filter_by(username=reviewer_login).first()
@@ -173,7 +173,7 @@ async def store_pull_request_review(db: Session, pr_id: int, review_data: dict):
             # Fetch user details and store
             user_data = await fetch_github_user_details(reviewer_login)
             reviewer_company = user_data.get('company', None)
-            reviewer = await store_or_get_user(db, reviewer_login, user_data, reviewer_company)
+            reviewer = await store_or_get_user(db, reviewer_login, user_data, org_name)
 
         review = PullRequestReview(
             pull_request_id=pr_id,

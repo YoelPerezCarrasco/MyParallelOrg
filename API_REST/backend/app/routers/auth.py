@@ -42,10 +42,10 @@ async def login(login_item: LoginItem, db: Session = Depends(get_db)):
 
 @router.get("/users/me")
 async def read_users_me(current_user: UserModel = Depends(get_current_user)):
-    return current_user
-
-
-
+    return {
+        "id": current_user.id,
+        "username": current_user.username,
+    }
 
 @router.post("/register/", status_code=201)
 async def register_user(user: UserCreate, db: Session = Depends(get_db)):

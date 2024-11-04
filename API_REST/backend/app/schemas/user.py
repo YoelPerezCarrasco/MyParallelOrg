@@ -1,6 +1,6 @@
 from pydantic import BaseModel,Field
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 class UserCreate(BaseModel):
     rol: str
@@ -35,6 +35,16 @@ class GitHubUserSchema(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+class UserRecommendationResponse(BaseModel):
+    id: int
+    username: str
+    avatar_url: Optional[str] = None
+    github_url: Optional[str] = None
+    probabilidad: float  # Add probability field for recommendation ranking
+
+    class Config:
+        orm_mode = True
     
 class UserResponse(BaseModel):
     id: int
@@ -58,6 +68,10 @@ class UserRepoContributionsSchema(BaseModel):
     }
 
 
+class GrupoTrabajo(BaseModel):
+    grupo_id: int
+    usuarios: List[int]
+
 class UserRepoCommitsSchema(BaseModel):
     id: int
     user_id: int
@@ -68,6 +82,10 @@ class UserRepoCommitsSchema(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+class OrgRequest(BaseModel):
+    org: str
+
 
 class Token(BaseModel):
     access_token: str

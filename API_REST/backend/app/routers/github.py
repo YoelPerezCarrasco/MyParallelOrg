@@ -82,17 +82,17 @@ async def get_org_users(org: str, db: Session = Depends(get_db)):
             pull_requests = await fetch_pull_requests(org, repo_name)
             for pr_data in pull_requests:
                 # Store the pull request
-                pr = await store_pull_request(db, pr_data, repo_name)
+                pr = await store_pull_request(db, pr_data, repo_name, org)
 
                 # Fetch and store comments
                 comments = await fetch_pull_request_comments(org, repo_name, pr.pr_number)
                 for comment_data in comments:
-                    await store_pull_request_comment(db, pr.id, comment_data)
+                    await store_pull_request_comment(db, pr.id, comment_data, org)
 
                 # Fetch and store reviews
                 reviews = await fetch_pull_request_reviews(org, repo_name, pr.pr_number)
                 for review_data in reviews:
-                    await store_pull_request_review(db, pr.id, review_data)
+                    await store_pull_request_review(db, pr.id, review_data, org)
         except Exception as e:
             logger.error(f"Errorrr fetching pull requests for repo {repo_name}: {e}")
     simulate_user_locations(db)
