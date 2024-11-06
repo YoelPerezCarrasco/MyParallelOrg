@@ -86,37 +86,40 @@ const ManagerDashboard: React.FC = () => {
             )}
 
             {grupos.length > 0 ? (
-                grupos.map(grupo => (
-                    <div key={grupo.grupo_id} className="mb-5 p-4 border rounded bg-light shadow-sm">
-                        <h4 className="text-center text-secondary mb-4">Grupo {grupo.grupo_id + 1}</h4>
-                        <div className="row">
-                            {grupo.usuarios.map(userId => {
-                                const user = getUserById(userId);
-                                if (user) {
-                                    return (
-                                        <div key={user.id} className="col-md-4 mb-4">
-                                            <div className="card h-100 shadow-sm border-0">
-                                                <img src={user.avatar_url} alt={user.username} className="card-img-top" style={{ borderRadius: '50%', width: '50%', margin: '20px auto' }} />
-                                                <div className="card-body text-center">
-                                                    <h5 className="card-title">{user.username}</h5>
-                                                    <p className="card-text text-muted">
-                                                        <strong>Lenguaje:</strong> {user.dominant_language} <br />
-                                                        <strong>Reputación (Stars):</strong> {user.stars}
-                                                    </p>
-                                                    <a href={user.html_url} target="_blank" rel="noopener noreferrer" className="btn btn-outline-primary btn-sm">
-                                                        Ver Perfil de Github
-                                                    </a>
+                <table className="table table-striped table-bordered">
+                    <thead className="thead-dark">
+                        <tr>
+                            <th>Grupo ID</th>
+                            <th>Miembros del Grupo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {grupos.map(grupo => (
+                            <tr key={grupo.grupo_id}>
+                                <td>{grupo.grupo_id + 1}</td>
+                                <td>
+                                    {grupo.usuarios.map(userId => {
+                                        const user = getUserById(userId);
+                                        if (user) {
+                                            return (
+                                                <div key={user.id} className="d-inline-block mr-3 mb-2 text-center">
+                                                    <img
+                                                        src={user.avatar_url}
+                                                        alt={user.username}
+                                                        style={{ width: '50px', height: '50px', borderRadius: '50%' }}
+                                                    />
+                                                    <div>{user.username}</div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    );
-                                } else {
-                                    return null;
-                                }
-                            })}
-                        </div>
-                    </div>
-                ))
+                                            );
+                                        } else {
+                                            return null;
+                                        }
+                                    })}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             ) : (
                 <div className="alert alert-info text-center">
                     No hay grupos formados aún.

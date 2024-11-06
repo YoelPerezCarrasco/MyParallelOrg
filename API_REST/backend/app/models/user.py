@@ -1,4 +1,5 @@
 # models/user.py
+from datetime import datetime
 from typing import Optional
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Text
@@ -109,6 +110,34 @@ class UserModel(Base):
     rol = Column(String, nullable=False)
     company = Column(String, nullable=False)
 
+    grupos_trabajo = relationship("GruposTrabajo", back_populates="user", cascade="all, delete-orphan")
+
+
 class LoginItem(BaseModel):
     username: str
     password: str
+
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    sender_id = Column(Integer, ForeignKey("users.id"))
+    receiver_id = Column(Integer, ForeignKey("users.id"))
+    message = Column(Text)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+    sender = relationship("UserModel", foreign_keys=[sender_id])
+    receiver = relationship("UserModel", foreign_keys=[receiver_id])
+
+
+class GruposTrabajo(Base):
+    __tablename__ = 'grupos_trabajo'
+
+    id = Column(Integer, primary_key=True, index=True)
+    grupo_id = Column(Integer, index=True)
+    usuario_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+    organizacion = Column(String, index=True)  # Nueva columna para identificar la organización
+
+    # Relación opcional para vincular usuarios, si tienes una relación definida en el modelo de usuarios
+    user = relationship("UserModel", back_populates="grupos_trabajo", foreign_keys=[usuario_id])

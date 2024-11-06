@@ -15,7 +15,7 @@ interface AuthContextType {
 
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export default AuthContext;
 

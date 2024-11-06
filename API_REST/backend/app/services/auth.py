@@ -1,7 +1,9 @@
-from app.models.user import UserModel
+from typing import List
+from app.models.user import GruposTrabajo, UserModel
 from app.core.config import SECRET_KEY, ALGORITHM
 from app.database.database import get_db
 from app.core.security import verify_password
+from app.services.work_groups import get_user_groups
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -43,3 +45,36 @@ def authenticate_user(db: Session, username: str, password: str):
     if not verify_password(password, user.hashed_password):
         return False
     return user
+
+
+def can_send_message(current_user: UserModel, receiver_id: int, db: Session) -> bool:
+    if current_user.id == receiver_id:
+        return False  # No puede enviarse mensajes a sí mismo
+
+    receiver = db.query(UserModel).filter(UserModel.id == receiver_id).first()
+    if not receiver:
+        return False
+
+    if current_user.is_manager:
+        # Managers pueden enviar mensajes a cualquier usuario de su organización
+        return receiver.company == current_user.company
+    else:
+        # Workers solo pueden enviar mensajes a miembros de su grupo
+        # Asumiendo que tienes una tabla que relaciona usuarios y grupos
+        current_user_groups = get_user_groups(db, current_user.id)
+        receiver_groups = get_user_groups(db, receiver_id)
+        return bool(set(current_user_groups) & set(receiver_groups))
+
+def get_user_groups(db: Session, user_id: int) -> List[int]:
+    """
+    Obtiene los IDs de los grupos a los que pertenece un usuario.
+    
+    :param db: Sesión de la base de datos.
+    :param user_id: ID del usuario.
+    :return: Lista de IDs de grupos a los que pertenece el usuario.
+    """
+    # Consultar la tabla GruposTrabajo para obtener los grupo_id del usuario especificado
+    user_groups = db.query(GruposTrabajo.grupo_id).filter(GruposTrabajo.usuario_id == user_id).all()
+    
+    # Extraer los IDs de grupo de los resultados y devolver como lista
+    return [group[0] for group in user_groups]

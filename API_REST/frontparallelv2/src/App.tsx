@@ -3,7 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Homepage from './views/Home';
 import Loginpage from './views/Loginv2';
-import UserDashboard from './views/UserDashboard';
+import UserDashboard from './views/dashboardmw/worker_dashboard/UserDashboard';
 import AdminDashboard from './../src/views/dashboard/AdminDashboard';
 import UserList from './views/cruds/UserList';
 import CreateUser from './views/cruds/CreateUser';
@@ -12,7 +12,7 @@ import { RequireAdminToken } from './utils/RequireAdminToken';
 import Registerpage from './views/RegisterPage';
 import	UserGraph from './views/UserGraph';  // Importa el componente UserGraph
 import Setting from './views/Setting';
-import ManagerDashboard from './views/ManagerDashboard';
+import ManagerDashboard from './views/dashboardmw/manager_dashboard/ManagerDashboard';
 import { RequireManagerToken } from './utils/RequireManagerToken';
 import Layout1Topbar from './components/Layout/Layout1TopBar';
 import { styled } from '@mui/material/styles';

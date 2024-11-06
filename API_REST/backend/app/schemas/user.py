@@ -12,10 +12,32 @@ class UserCreate(BaseModel):
     model_config = {
         "from_attributes": True
     }
+# schemas.py
+class MessageCreate(BaseModel):
+    receiver_id: int
+    message: str
+
+class MessageResponse(BaseModel):
+    id: int
+    sender_id: int
+    receiver_id: int
+    message: str
+    timestamp: datetime
+
+    class Config:
+        orm_mode = True
 
 class LoginItem(BaseModel):
     username: str
     password: str
+
+    # schemas.py
+
+class MemberResponse(BaseModel):
+    id: int
+    name: str
+    avatar: Optional[str] = None
+
 
 class GamificationConfigInput(BaseModel):
     puntos_commit: int
