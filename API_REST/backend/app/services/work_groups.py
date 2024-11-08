@@ -1,3 +1,5 @@
+
+
 import os
 from typing import List
 import pandas as pd
@@ -10,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.database.database import SessionLocal
 from app.models.user import GitHubUserModel, UserModel
 from app.models.user import GruposTrabajo
+
 import logging
 
 # Configurar el logger
@@ -28,7 +31,7 @@ def generar_grupos_de_trabajo(org_name: str) -> pd.DataFrame:
         # Cargar el modelo entrenado
         model_dir = '/app/modelos'
         model_path = os.path.join(model_dir, 'modelo_colaboracion.joblib')
-        scaler_path = os.path.join(model_dir, 'scaler.joblib')
+        scaler_path = os.path.join(model_dir, 'scaler_colaboracion.joblib')
         modelo = load(model_path)
         scaler = load(scaler_path)
         logger.info("Modelo y escalador cargados con éxito")
@@ -58,6 +61,7 @@ def generar_grupos_de_trabajo(org_name: str) -> pd.DataFrame:
         if interacciones_df.empty:
             logger.warning("No se encontraron interacciones entre los usuarios, asignando grupos aleatorios")
             grupos_finales = [usuarios[i:i + 15] for i in range(0, len(usuarios), 15)]
+            group_leaders = [grupo[0] for grupo in grupos_finales]  # Asignar al primer usuario como líder por defecto
         else:
             # Preparar las características y predecir probabilidades
             X = interacciones_df[['commits_juntos', 'contributions_juntas', 'pull_requests_comentados', 'revisiones']]
@@ -83,43 +87,42 @@ def generar_grupos_de_trabajo(org_name: str) -> pd.DataFrame:
             comunidades = community.louvain_communities(G, weight='weight', resolution=1.0, seed=42)
             logger.info(f"Comunidades detectadas: {len(comunidades)} comunidades encontradas")
 
-            # Limitar el tamaño de los grupos a 15 personas
+            # Limitar el tamaño de los grupos a 15 personas y asignar líderes
             grupos_finales = []
+            group_leaders = []
             for comunidad in comunidades:
-                comunidad = [int(u) for u in comunidad]  # Convertir a int nativo
+                comunidad = [int(u) for u in comunidad]
                 # Si la comunidad es mayor a 15, dividirla en subgrupos
                 if len(comunidad) > 15:
                     subgrupos = [comunidad[i:i + 15] for i in range(0, len(comunidad), 15)]
-                    grupos_finales.extend(subgrupos)
+                    for subgrupo in subgrupos:
+                        grupos_finales.append(subgrupo)
+                        # Asignar líder para cada subgrupo
+                        leader_id = asignar_lider(subgrupo, G)
+                        group_leaders.append(leader_id)
                 else:
                     grupos_finales.append(comunidad)
-            logger.info("Grupos formados con tamaño limitado a 15 personas")
-
-        # Convertir todos los usuario_id a int en grupos_finales
-        grupos_finales = [[int(usuario_id) for usuario_id in grupo] for grupo in grupos_finales]
+                    # Asignar líder para la comunidad
+                    leader_id = asignar_lider(comunidad, G)
+                    group_leaders.append(leader_id)
+            logger.info("Grupos formados con tamaño limitado a 15 personas y líderes asignados")
 
         # Eliminar grupos previos de la misma organización en la base de datos
         db.query(GruposTrabajo).filter(GruposTrabajo.organizacion == org_name).delete()
         db.commit()
 
-        # Insertar los nuevos grupos en la base de datos
-        for grupo_id, usuarios_grupo in enumerate(grupos_finales):
-            grupo_id_int = int(grupo_id)
-            for usuario_id in usuarios_grupo:
-                usuario_id_int = int(usuario_id)
-                logger.debug(f"Insertando usuario_id: {usuario_id_int}, grupo_id: {grupo_id_int}")
-                usuario = db.query(UserModel).filter(UserModel.id == usuario_id_int).first()
-                if usuario:
-                    grupo = GruposTrabajo(grupo_id=grupo_id_int, usuario_id=usuario_id_int, organizacion=org_name)
-                else:
-                    grupo = GruposTrabajo(grupo_id=grupo_id_int, usuario_id=None, organizacion=org_name)
-                db.add(grupo)
 
-        db.commit()
-        logger.info("Grupos formados guardados en la base de datos")
+        logger.info("Grupos formados y líderes asignados guardados en la base de datos")
+        logger.info(f"Group Leaders: {group_leaders}")
+        logger.info(f"Grupos Finales: {grupos_finales}")
+
 
         # Devuelve el DataFrame para uso opcional en otras partes del código
-        grupos_df = pd.DataFrame({'grupo_id': range(len(grupos_finales)), 'usuarios': grupos_finales})
+        grupos_df = pd.DataFrame({
+            'grupo_id': range(len(grupos_finales)),
+            'usuarios': grupos_finales,
+            'leader_id': group_leaders
+        })
         return grupos_df
 
     except Exception as e:
@@ -131,21 +134,43 @@ def generar_grupos_de_trabajo(org_name: str) -> pd.DataFrame:
             db.close()
             logger.info("Sesión de base de datos cerrada")
 
+def asignar_lider(grupo: List[int], G: nx.Graph) -> int:
+    total_weights = {}
+    for user in grupo:
+        weight_sum = 0
+        for other_user in grupo:
+            if user != other_user:
+                if G.has_edge(user, other_user):
+                    weight_sum += G[user][other_user]['weight']
+        total_weights[user] = weight_sum
+    logger.info(f"Total weights for group {grupo}: {total_weights}")
+    leader = max(total_weights, key=total_weights.get)
+    logger.info(f"Leader selected: {leader}")
+    return leader
+
 
 def get_users_in_group(db: Session, group_id: int) -> List[UserModel]:
     """
-    Obtiene los usuarios en un grupo específico desde la base de datos.
+    Obtiene los usuarios en un grupo específico desde la base de datos,
+    indicando quién es el líder.
     """
-    # Consultar los registros en GruposTrabajo para obtener los IDs de usuarios en el grupo especificado
-    user_ids = db.query(GruposTrabajo.usuario_id).filter(GruposTrabajo.grupo_id == group_id).all()
-    user_ids = [user_id[0] for user_id in user_ids]  # Convertir los resultados a una lista de IDs
-
-    # Si no se encontraron usuarios en el grupo, devolver una lista vacía
-    if not user_ids:
+    # Consultar los registros en GruposTrabajo para obtener los usuarios en el grupo
+    grupo_usuarios = db.query(GruposTrabajo).filter(GruposTrabajo.grupo_id == group_id).all()
+    
+    if not grupo_usuarios:
         raise ValueError(f"No se encontraron usuarios en el grupo con ID {group_id}")
 
-    # Consultar los usuarios en la base de datos a partir de sus IDs
+    # Obtener los IDs de los usuarios y si son líderes
+    users_info = [(gu.usuario_id, gu.is_leader) for gu in grupo_usuarios]
+
+    # Consultar los usuarios en la base de datos
+    user_ids = [info[0] for info in users_info]
     users = db.query(UserModel).filter(UserModel.id.in_(user_ids)).all()
+
+    # Asociar cada usuario con su estado de líder
+    for user in users:
+        user.is_leader = next((is_leader for uid, is_leader in users_info if uid == user.id), False)
+
     return users
 
 def get_user_groups(db: Session, user_id: int) -> List[int]:

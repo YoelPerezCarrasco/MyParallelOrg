@@ -7,6 +7,7 @@ import OrganizationManagementCard from './litis/OrganizationManagementCard';
 import LoadingModal from './litis/LoadingModal';
 import DatasetCard from './litis/DataSetCard';
 import GroupManagementCard from './litis/GroupManagementCard';
+import Dashboard from '../dashboardmw/Dashboard';
 
 // Styled Components
 const ContentBox = styled('div')(({ theme }) => ({
@@ -100,6 +101,17 @@ const AdminDashboard: React.FC = () => {
             </SectionTitle>
             <DatasetCard />
           </Card>
+
+
+          
+          {/* Sección de Generación de Dataset */}
+          <Card sx={{ px: 3, py: 2, mb: 3 }}>
+            <SectionTitle>
+              <Title>Generador de Dataset</Title>
+              <SubTitle>Genera datasets para entrenamiento</SubTitle>
+            </SectionTitle>
+            <Dashboard />
+            </Card>
 
         </Grid>
 

@@ -12,12 +12,12 @@ interface ConnectedUser {
 const UserDashboard: React.FC = () => {
     const [connections, setConnections] = useState<ConnectedUser[]>([]);
     const [message, setMessage] = useState<string | null>(null);
-    const [userId, setUserId] = useState<number | null>(null);
+    const [usernamegt, setUserId] = useState<string | null>(null);
     const navigate = useNavigate();
 
-    const fetchRecommendations = async (userId: number, token: string) => {
+    const fetchRecommendations = async (usernamegt: string, token: string) => {
         try {
-            const response = await fetch(`http://localhost:8000/prediction/users/${userId}/recommendations`, {
+            const response = await fetch(`http://localhost:8000/prediction/users/${usernamegt}/recommendations`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -57,7 +57,7 @@ const UserDashboard: React.FC = () => {
                 });
                 const data = await response.json();
                 if (response.ok && data.id) {  // Check if data contains 'id'
-                    setUserId(data.id);
+                    setUserId(data.username);
                 } else {
                     setMessage("Error obteniendo el usuario.");
                 }
@@ -74,10 +74,10 @@ const UserDashboard: React.FC = () => {
     // Fetch recommendations when userId becomes available
     useEffect(() => {
         const token = localStorage.getItem('token');
-        if (userId !== null && token) {
-            fetchRecommendations(userId, token);
+        if (usernamegt !== null && token) {
+            fetchRecommendations(usernamegt, token);
         }
-    }, [userId]);
+    }, [usernamegt]);
 
     return (
         <div className="container mt-5">

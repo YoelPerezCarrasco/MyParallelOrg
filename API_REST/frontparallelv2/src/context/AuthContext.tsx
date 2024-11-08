@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
+import { parseJwt } from "../utils/jwtDecode";
 
 const swal = require('sweetalert2');
 
@@ -12,7 +13,23 @@ interface AuthContextType {
   loginUser: (username: string, password: string) => Promise<void>;
   logoutUser: () => void;
   isAuthenticated: boolean;  // Agregado aquí
+  getUserRole: (authTokens: any) => { role: string | null, username: string | null };  // Agregado aquí
+  
 
+}
+
+interface AuthTokensType {
+  access_token: string;
+  is_admin: boolean;
+  is_manager: boolean;
+  username: string;
+}
+
+interface DecodedToken {
+  username: string;
+  is_admin: boolean;
+  is_manager: boolean;
+  exp: number;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -22,6 +39,30 @@ export default AuthContext;
 interface AuthProviderProps {
   children: ReactNode;
 }
+
+
+export const getUserRole = (authTokens: AuthTokensType | null) => {
+  if (!authTokens) return { role: null, username: null };
+
+  const decoded = parseJwt(authTokens.access_token) as DecodedToken | null;
+  if (!decoded) {
+    return { role: null, username: null };
+  }
+  let role: string;
+
+  if (decoded.is_admin) {
+    role = 'admin';
+  } else if (decoded.is_manager) {
+    role = 'manager';
+  } else {
+    role = 'worker';
+  }
+
+  return {
+    role,
+    username: decoded.username,
+  };
+};
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [authTokens, setAuthTokens] = useState(() =>
@@ -154,45 +195,46 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
 
 
-  const logoutUser = () => {
-    setAuthTokens(null);
-    setUser(null);
-    localStorage.removeItem("authTokens");
-    localStorage.removeItem("token");
-    navigate("/login");
-    swal.fire({
-      title: "Has cerrado sesión",
-      icon: "success",
-      toast: true,
-      timer: 6000,
-      position: 'top-right',
-      timerProgressBar: true,
-      showConfirmButton: false,
-    });
-  };
+const logoutUser = () => {
+  setAuthTokens(null);
+  setUser(null);
+  localStorage.removeItem("authTokens");
+  localStorage.removeItem("token");
+  navigate("/login");
+  swal.fire({
+    title: "Has cerrado sesión",
+    icon: "success",
+    toast: true,
+    timer: 6000,
+    position: 'top-right',
+    timerProgressBar: true,
+    showConfirmButton: false,
+  });
+};
 
-  const contextData = {
-    user,
-    setUser,
-    authTokens,
-    setAuthTokens,
-    registerUser,
-    loginUser,
-    logoutUser,
-    isAuthenticated: !!authTokens, // Nuevo indicador de autenticación
+const contextData = {
+  user,
+  setUser,
+  authTokens,
+  setAuthTokens,
+  registerUser,
+  loginUser,
+  logoutUser,
+  isAuthenticated: !!authTokens, // Nuevo indicador de autenticación
+  getUserRole,
 
-  };
+};
 
-  useEffect(() => {
-    if (authTokens) {
-      setUser(authTokens.user);
-    }
-    setLoading(false);
-  }, [authTokens, loading]);
+useEffect(() => {
+  if (authTokens) {
+    setUser(authTokens.user);
+  }
+  setLoading(false);
+}, [authTokens, loading]);
 
-  return (
-    <AuthContext.Provider value={contextData}>
-      {loading ? null : children}
-    </AuthContext.Provider>
-  );
+return (
+  <AuthContext.Provider value={contextData}>
+    {loading ? null : children}
+  </AuthContext.Provider>
+);
 };

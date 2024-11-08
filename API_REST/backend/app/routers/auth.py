@@ -1,11 +1,13 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from app.database.database import get_db
 from app.services.auth import authenticate_user, get_current_user
 from app.core.security import create_access_token, get_password_hash
-from app.schemas.user import UserCreate, ChangePasswordRequest, LoginItem
-from app.models.user import UserModel
+from app.schemas.user import UserCreate, ChangePasswordRequest, LoginItem, GitHubUserDetails
+from app.models.user import GruposTrabajo, UserModel, GitHubUserModel, UserInteractions
 from app.core.config import ACCESS_TOKEN_EXPIRES_MINUTES
 from app.core.security import pwd_context
 
@@ -14,7 +16,6 @@ from datetime import timedelta
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
 @router.post("/login", response_model=dict)
 async def login(login_item: LoginItem, db: Session = Depends(get_db)):
     user = authenticate_user(db, login_item.username, login_item.password)
@@ -25,19 +26,29 @@ async def login(login_item: LoginItem, db: Session = Depends(get_db)):
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Crear el token de acceso, incluyendo el rol del usuario en el token
+    # Obtener el group_id del usuario
+    group_membership = db.query(GruposTrabajo).filter(GruposTrabajo.usuario_id == user.id).first()
+    group_id = group_membership.grupo_id if group_membership else None
+
+    # Crear el token de acceso, incluyendo el rol y el group_id del usuario en el token
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRES_MINUTES)
     access_token = create_access_token(
-        data={"username": user.username, "is_admin": user.is_admin, "is_manager": user.is_manager},
+        data={
+            "username": user.username,
+            "is_admin": user.is_admin,
+            "is_manager": user.is_manager,
+            "group_id": group_id  # Agregar el group_id al token
+        },
         expires_delta=access_token_expires
     )
+
     return {
         "access_token": access_token,
         "token": "bearer",
         "username": user.username,
-        "is_admin": user.is_admin,  # Devuelve la información de si es admin o no
-        "is_manager": user.is_manager  # Devuelve la información de si es admin o no
-
+        "is_admin": user.is_admin,
+        "is_manager": user.is_manager,
+        "group_id": group_id  # Devolver el group_id en la respuesta para referencia adicional
     }
 
 @router.get("/users/me")
@@ -73,20 +84,52 @@ async def register_user(user: UserCreate, db: Session = Depends(get_db)):
 
 
 
+@router.get("/manager/users/details", response_model=List[GitHubUserDetails])
+def get_users_details(user_ids: List[int], db: Session = Depends(get_db)):
+    try:
+        # Query para sumar las interacciones para cada usuario especificado en user_ids
+        users = (
+            db.query(
+                GitHubUserModel.id,
+                GitHubUserModel.username,
+                GitHubUserModel.html_url,
+                GitHubUserModel.avatar_url,
+                GitHubUserModel.organization,
+                GitHubUserModel.stars,
+                GitHubUserModel.dominant_language,
+                func.sum(UserInteractions.commits_juntos).label("commits"),
+                func.sum(UserInteractions.contributions_juntas).label("contributions"),
+                func.sum(UserInteractions.pull_requests_comentados).label("pullRequests"),
+                func.sum(UserInteractions.revisiones).label("reviews"),
+            )
+            .join(UserInteractions, GitHubUserModel.id == UserInteractions.user_1)
+            .filter(GitHubUserModel.id.in_(user_ids))
+            .group_by(GitHubUserModel.id)
+            .all()
+        )
 
-@router.post("/change-password")
-async def change_password(request: ChangePasswordRequest, db: Session = Depends(get_db)):
-    # Buscar al usuario por nombre de usuario
-    user = db.query(UserModel).filter(UserModel.username == request.username).first()
+        if not users:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No users found with the provided IDs.")
 
-    # Verificar la contraseña actual
-    if not user or not pwd_context.verify(request.current_password, user.hashed_password):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect current password")
+        # Formatear los resultados para serializar fácilmente
+        user_details = [
+            {
+                "id": user.id,
+                "username": user.username,
+                "html_url": user.html_url,
+                "avatar_url": user.avatar_url,
+                "organization": user.organization,
+                "stars": user.stars,
+                "dominant_language": user.dominant_language,
+                "commits": user.commits or 0,  # Asigna 0 si el valor es None
+                "contributions": user.contributions or 0,
+                "pullRequests": user.pullRequests or 0,
+                "reviews": user.reviews or 0,
+            }
+            for user in users
+        ]
 
-    # Cambiar la contraseña
-    user.hashed_password = pwd_context.hash(request.new_password)
-    db.commit()
+        return user_details
 
-    return {"message": "Password changed successfully"}
-
-
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

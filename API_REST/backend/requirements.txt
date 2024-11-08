@@ -19,3 +19,4 @@ pandas
 joblib
 seaborn
 imblearn
+tensorflow

@@ -24,7 +24,7 @@ def get_available_members(group_id: Optional[int] = None, db: Session = Depends(
     members = [MemberResponse(
         id=user.id,
         name=user.username,
-        avatar=user.avatar_url,  # Asumiendo que tienes este campo
+        avatar='https://avatars.githubusercontent.com/u/1708081?v=4',  # Asumiendo que tienes este campo
     ) for user in users if user.id != current_user.id]  # Excluir al usuario actual
     return members
 
@@ -32,7 +32,7 @@ def get_available_members(group_id: Optional[int] = None, db: Session = Depends(
 # routes/messages.py
 
 @router.post("/messages/send", response_model=MessageResponse)
-def send_message(message: MessageCreate, db: Session = Depends(get_db), current_user: UserModel = Depends(get_current_active_user)):
+def send_message(message: MessageCreate, db: Session = Depends(get_db), current_user: UserModel = Depends(get_current_user)):
     # Verificar si el usuario tiene permiso para enviar mensajes al receptor
     if not can_send_message(current_user, message.receiver_id, db):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tienes permiso para enviar mensajes a este usuario")
@@ -49,13 +49,36 @@ def send_message(message: MessageCreate, db: Session = Depends(get_db), current_
 
 
 @router.get("/messages/conversation/{other_user_id}", response_model=List[MessageResponse])
-def get_conversation(other_user_id: int, db: Session = Depends(get_db), current_user: UserModel = Depends(get_current_active_user)):
+def get_conversation(other_user_id: int, db: Session = Depends(get_db), current_user: UserModel = Depends(get_current_user)):
     # Verificar si el usuario tiene permiso para ver la conversación con el otro usuario
     if not can_send_message(current_user, other_user_id, db):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tienes permiso para ver esta conversación")
 
-    messages = db.query(Message).filter(
+    # Realizar la consulta de mensajes con los detalles del remitente y receptor
+    messages = db.query(
+        Message.id,
+        Message.message,
+        Message.timestamp,
+        Message.sender_id,
+        Message.receiver_id,
+        UserModel.username.label("sender_name"),
+    ).join(UserModel, UserModel.id == Message.sender_id).filter(
         ((Message.sender_id == current_user.id) & (Message.receiver_id == other_user_id)) |
         ((Message.sender_id == other_user_id) & (Message.receiver_id == current_user.id))
     ).order_by(Message.timestamp.asc()).all()
-    return messages
+
+    # Mapear los mensajes a la estructura esperada en la respuesta
+    result = [
+        {
+            "id": msg.id,
+            "message": msg.message,
+            "timestamp": msg.timestamp.isoformat(),  # Convertir a ISO para un formato estandarizado
+            "sender_id": msg.sender_id,
+            "receiver_id": msg.receiver_id,
+            "sender_name": msg.sender_name,
+            "sender_avatar": 'https://via.placeholder.com/60'
+        }
+        for msg in messages
+    ]
+
+    return result

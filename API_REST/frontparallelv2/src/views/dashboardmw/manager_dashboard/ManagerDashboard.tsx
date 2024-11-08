@@ -1,5 +1,8 @@
+// ManagerDashboard.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Container, Typography, CircularProgress, Box, Paper, Divider } from '@mui/material';
+import GroupPanel from './groups/GroupPanel';
 
 interface GitHubUser {
     id: number;
@@ -9,21 +12,28 @@ interface GitHubUser {
     organization: string;
     stars: number;
     dominant_language: string;
+    commits: number;
+    contributions: number;
+    pullRequests: number;
+    reviews: number;
 }
 
 interface GrupoTrabajo {
     grupo_id: number;
     usuarios: number[]; // IDs de los usuarios
+    leader_id: number | null; // Agrega leader_id a la interfaz
 }
 
 const ManagerDashboard: React.FC = () => {
     const [users, setUsers] = useState<GitHubUser[]>([]);
     const [userOrganization, setUserOrganization] = useState<string | null>(null);
     const [grupos, setGrupos] = useState<GrupoTrabajo[]>([]);
+    const [isLoading, setIsLoading] = useState(true); // Estado para el indicador de carga
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchData = async () => {
+            setIsLoading(true); // Inicia la carga
             const token = localStorage.getItem('token');
             if (!token) {
                 navigate('/login');
@@ -31,23 +41,23 @@ const ManagerDashboard: React.FC = () => {
             }
 
             try {
-                // Obtener usuarios
-                const responseUsers = await fetch('http://localhost:8000/users/manager/users', {
+                // Obtener detalles de los usuarios con el nuevo endpoint
+                const responseUsers = await fetch('http://localhost:8000/users/manager/users/details', {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
                 });
 
                 if (responseUsers.ok) {
-                    const dataUsers = await responseUsers.json();
+                    const dataUsers: GitHubUser[] = await responseUsers.json();
                     setUsers(dataUsers);
 
-                    // Asumiendo que todos los usuarios son de la misma organización
+                    // Asumiendo que todos los usuarios son de la misma organización, extraemos de cualquiera de ellos
                     if (dataUsers.length > 0) {
                         setUserOrganization(dataUsers[0].organization);
                     }
                 } else {
-                    alert('Failed to fetch users');
+                    alert('No se pudieron obtener los detalles de los usuarios');
                 }
 
                 // Obtener grupos formados
@@ -58,74 +68,74 @@ const ManagerDashboard: React.FC = () => {
                 });
 
                 if (responseGrupos.ok) {
-                    const dataGrupos = await responseGrupos.json();
+                    const dataGrupos: GrupoTrabajo[] = await responseGrupos.json();
                     setGrupos(dataGrupos);
                 } else {
-                    alert('Failed to fetch groups');
+                    alert('No se pudieron obtener los grupos');
                 }
 
             } catch (error) {
-                console.error('Error fetching data:', error);
-                alert('An error occurred while fetching data');
+                console.error('Error obteniendo datos:', error);
+                alert('Ocurrió un error al obtener los datos');
+            } finally {
+                setIsLoading(false); // Finaliza la carga
             }
         };
 
         fetchData();
     }, [navigate]);
 
-    // Función para obtener información de usuario por ID
-    const getUserById = (id: number) => {
-        return users.find(user => user.id === id);
-    };
-
     return (
-        <div className="container mt-5">
-            <h2 className="text-center mb-4 text-primary">Grupos de Trabajo Formados</h2>
-            {userOrganization && (
-                <p className="text-center text-muted">Organización: <strong>{userOrganization}</strong></p>
-            )}
+        <Container>
+            <Paper elevation={8} style={{ padding: '50px', backgroundColor: '#f9f9f9' }}>
+                <Typography variant="h3" align="center" gutterBottom color="primary">
+                    Dashboard de Grupos de Trabajo
+                </Typography>
+                <Divider variant="middle" style={{ margin: '20px 0' }} />
+                {userOrganization && (
+                    <Typography variant="h6" align="center" color="textSecondary">
+                        Organización: <strong>{userOrganization}</strong>
+                    </Typography>
+                )}
+            </Paper>
 
-            {grupos.length > 0 ? (
-                <table className="table table-striped table-bordered">
-                    <thead className="thead-dark">
-                        <tr>
-                            <th>Grupo ID</th>
-                            <th>Miembros del Grupo</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {grupos.map(grupo => (
-                            <tr key={grupo.grupo_id}>
-                                <td>{grupo.grupo_id + 1}</td>
-                                <td>
-                                    {grupo.usuarios.map(userId => {
-                                        const user = getUserById(userId);
-                                        if (user) {
-                                            return (
-                                                <div key={user.id} className="d-inline-block mr-3 mb-2 text-center">
-                                                    <img
-                                                        src={user.avatar_url}
-                                                        alt={user.username}
-                                                        style={{ width: '50px', height: '50px', borderRadius: '50%' }}
-                                                    />
-                                                    <div>{user.username}</div>
-                                                </div>
-                                            );
-                                        } else {
-                                            return null;
-                                        }
-                                    })}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+            {isLoading ? (
+                <Box
+                    display="flex"
+                    flexDirection="column"
+                    justifyContent="center"
+                    alignItems="center"
+                    height="50vh"
+                    bgcolor="#f0f0f0"
+                    borderRadius="8px"
+                    mt={4}
+                >
+                    <CircularProgress color="secondary" size={50} />
+                    <Typography variant="h5" marginTop={2}>
+                        Cargando datos...
+                    </Typography>
+                </Box>
+            ) : grupos.length > 0 ? (
+                <Box mt={4}>
+                    {grupos.map(grupo => (
+                        <Box key={grupo.grupo_id} mb={3}>
+                            <GroupPanel
+                                groupId={grupo.grupo_id}
+                                userIds={grupo.usuarios}
+                                users={users}
+                                leaderId={grupo.leader_id}
+                            />
+                        </Box>
+                    ))}
+                </Box>
             ) : (
-                <div className="alert alert-info text-center">
-                    No hay grupos formados aún.
-                </div>
+                <Box mt={4} textAlign="center">
+                    <Typography variant="body1" align="center" color="textSecondary">
+                        No hay grupos formados aún.
+                    </Typography>
+                </Box>
             )}
-        </div>
+        </Container>
     );
 };
 

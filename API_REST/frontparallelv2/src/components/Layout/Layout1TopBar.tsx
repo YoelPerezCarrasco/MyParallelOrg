@@ -1,3 +1,4 @@
+// layout1TopBar.tsx
 import React, { memo, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -17,7 +18,8 @@ import {
   Menu as MenuIcon,
   Person,
   Settings,
-  PowerSettingsNew
+  PowerSettingsNew,
+  Chat as ChatIcon
 } from '@mui/icons-material';
 
 import AuthContext from '../../context/AuthContext';
@@ -55,7 +57,12 @@ const UserMenuBox = styled(Box)({
   fontFamily: 'Poppins, sans-serif',
 });
 
-const Layout1Topbar = () => {
+interface Layout1TopbarProps {
+  isChatOpen: boolean;
+  setIsChatOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const Layout1Topbar: React.FC<Layout1TopbarProps> = ({ isChatOpen, setIsChatOpen }) => {
   const theme = useTheme();
   const isMdScreen = useMediaQuery(theme.breakpoints.down('md'));
   const { logoutUser } = useContext(AuthContext)!;
@@ -77,8 +84,6 @@ const Layout1Topbar = () => {
   let isAuthenticated = false;
   
   let username: string | null = null;
-  let is_admin: boolean | null = null;
-  let is_manager: boolean | null = null;
 
   if (token) {
     const decoded = parseJwt(token);
@@ -99,14 +104,22 @@ const Layout1Topbar = () => {
 
         <Box display="flex" alignItems="center">
           {isAuthenticated && (
-            <UserMenuBox onClick={handleUserMenuClick}>
-              <Hidden smDown>
-                <Typography variant="body1" sx={{ marginRight: 1, color: 'white', fontFamily: 'Poppins' }}>
-                  Hola, <strong>{username || 'Usuario'}</strong>
-                </Typography>
-              </Hidden>
-              <Avatar src="/path/to/avatar.jpg" sx={{ cursor: 'pointer' }} />
-            </UserMenuBox>
+            <>
+              {/* Botón de chat */}
+              <StyledIconButton onClick={() => setIsChatOpen(!isChatOpen)}>
+                <ChatIcon />
+              </StyledIconButton>
+
+              {/* Menú de usuario */}
+              <UserMenuBox onClick={handleUserMenuClick}>
+                <Hidden smDown>
+                  <Typography variant="body1" sx={{ marginRight: 1, color: 'white', fontFamily: 'Poppins' }}>
+                    Hola, <strong>{username || 'Usuario'}</strong>
+                  </Typography>
+                </Hidden>
+                <Avatar src="/path/to/avatar.jpg" sx={{ cursor: 'pointer' }} />
+              </UserMenuBox>
+            </>
           )}
 
           <Menu
@@ -120,23 +133,15 @@ const Layout1Topbar = () => {
                 Inicio
               </Link>
             </MenuItem>
-            <MenuItem onClick={handleUserMenuClose} sx={{ fontFamily: 'Poppins' }}>
-              <Person sx={{ marginRight: 1 }} />
-              <Link
-                to="/user/dashboard"
-                style={{ textDecoration: 'none', color: 'inherit', fontFamily: 'Poppins' }}
-              >
-                Perfil
-              </Link>
-            </MenuItem>
-            <MenuItem onClick={handleUserMenuClose} sx={{ fontFamily: 'Poppins' }}>
-              <Settings sx={{ marginRight: 1 }} />
-              <Link
-                to="/settings"
-                style={{ textDecoration: 'none', color: 'inherit', fontFamily: 'Poppins' }}
-              >
-                Configuración
-              </Link>
+            {/* Otros ítems del menú */}
+            {/* ... */}
+            {/* Opción de Chat en el menú (opcional) */}
+            <MenuItem onClick={() => {
+                handleUserMenuClose();
+                setIsChatOpen(!isChatOpen);
+              }} sx={{ fontFamily: 'Poppins' }}>
+              <ChatIcon sx={{ marginRight: 1 }} />
+              <span>Chat</span>
             </MenuItem>
             <MenuItem
               onClick={() => {

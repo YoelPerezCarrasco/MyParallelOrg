@@ -1,6 +1,13 @@
-// components/MemberList.tsx
-import React from "react";
-import { MDBCard, MDBCardBody, MDBTypography } from "mdb-react-ui-kit";
+import React from 'react';
+import {
+  MDBCard,
+  MDBCardBody,
+  MDBTypography,
+  MDBListGroup,
+  MDBListGroupItem,
+  MDBBadge,
+  MDBIcon
+} from 'mdb-react-ui-kit';
 
 interface Member {
   id: number;
@@ -17,53 +24,50 @@ interface MemberListProps {
   selectedMember: Member | null;
 }
 
-const MemberList: React.FC<MemberListProps> = ({
-  members,
-  onSelectMember,
-  selectedMember,
-}) => {
+const MemberList: React.FC<MemberListProps> = ({ members, onSelectMember, selectedMember }) => {
   return (
-    <MDBCard>
+    <MDBCard style={{ width: '100%', maxWidth: '1000px' }}> {/* Ancho máximo ajustado */}
       <MDBCardBody>
-        <MDBTypography listUnStyled className="mb-0">
+        <h5 className="font-weight-bold mb-3 text-center text-lg-start">Miembros</h5>
+        <MDBListGroup flush className="mb-0">
           {members.map((member) => (
-            <li
+            <MDBListGroupItem
               key={member.id}
               className={`p-2 border-bottom ${
-                selectedMember && selectedMember.id === member.id
-                  ? "bg-info text-white"
-                  : ""
+                selectedMember?.id === member.id ? 'bg-light' : ''
               }`}
-              style={{ cursor: "pointer" }}
               onClick={() => onSelectMember(member)}
+              style={{ cursor: 'pointer', minWidth: '100%' }} // Asegurar que ocupe el 100%
             >
-              <div className="d-flex justify-content-between">
-                <div className="d-flex flex-row">
+              <div className="d-flex justify-content-between align-items-center">
+                <div className="d-flex flex-row align-items-center">
                   <img
-                    src={member.avatar}
+                    src={member.avatar || 'https://via.placeholder.com/60'}
                     alt="avatar"
-                    className="rounded-circle d-flex align-self-center me-3 shadow-1-strong"
-                    width="60"
+                    className="rounded-circle shadow-1-strong me-3"
+                    width="50"
                   />
-                  <div className="pt-1">
-                    <p className="fw-bold mb-0">{member.name}</p>
-                    <p className="small text-muted">{member.lastMessage}</p>
+                  <div style={{ minWidth: '0', width: '100%' }}>
+                    <p className="fw-bold mb-0" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {member.name}
+                    </p>
+                    <p className="small text-muted" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {member.lastMessage}
+                    </p>
                   </div>
                 </div>
-                <div className="pt-1">
-                  <p className="small text-muted mb-1">
-                    {member.lastMessageTime}
-                  </p>
+                <div className="text-end">
+                  <p className="small text-muted mb-1">{member.lastMessageTime}</p>
                   {member.unreadMessages > 0 && (
-                    <span className="badge bg-danger float-end">
+                    <MDBBadge color="danger" className="float-end">
                       {member.unreadMessages}
-                    </span>
+                    </MDBBadge>
                   )}
                 </div>
               </div>
-            </li>
+            </MDBListGroupItem>
           ))}
-        </MDBTypography>
+        </MDBListGroup>
       </MDBCardBody>
     </MDBCard>
   );

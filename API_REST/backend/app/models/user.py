@@ -110,8 +110,6 @@ class UserModel(Base):
     rol = Column(String, nullable=False)
     company = Column(String, nullable=False)
 
-    grupos_trabajo = relationship("GruposTrabajo", back_populates="user", cascade="all, delete-orphan")
-
 
 class LoginItem(BaseModel):
     username: str
@@ -136,8 +134,9 @@ class GruposTrabajo(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     grupo_id = Column(Integer, index=True)
-    usuario_id = Column(Integer, ForeignKey('users.id'), nullable=True)
-    organizacion = Column(String, index=True)  # Nueva columna para identificar la organización
+    usuario_id = Column(Integer, ForeignKey('github_users.id'), nullable=True)
+    organizacion = Column(String, index=True)  # Columna para identificar la organización
+    is_leader = Column(Boolean, default=False)  # Nueva columna para marcar al líder del grupo
 
-    # Relación opcional para vincular usuarios, si tienes una relación definida en el modelo de usuarios
-    user = relationship("UserModel", back_populates="grupos_trabajo", foreign_keys=[usuario_id])
+    # Relación opcional para vincular usuarios
+    user = relationship("GitHubUserModel", backref="grupos_trabajo", foreign_keys=[usuario_id])

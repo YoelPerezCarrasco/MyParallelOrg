@@ -1,7 +1,8 @@
 # crud/user.py
+from sqlalchemy import func
 from sqlalchemy.orm import Session
-from app.models.user import UserModel, GitHubUserModel
-from app.schemas.user import UserCreate, UserResponse
+from app.models.user import UserInteractions, UserModel, GitHubUserModel
+from app.schemas.user import GitHubUserDetails, UserCreate, UserResponse
 from app.core.security import get_password_hash
 from app.services.auth import get_current_user
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -16,14 +17,63 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Endpoints CRUD para usuarios
-@router.get("/manager/users")
-async def get_users_for_manager(db: Session = Depends(get_db), current_user: UserModel = Depends(get_current_user)):
-    if not current_user.is_manager:  # Asumiendo que tienes un campo 'is_manager' en tu modelo de usuario
-        raise HTTPException(status_code=403, detail="Access forbidden: Only managers can access this resource.")
-    
-    company_name = current_user.company
-    users = db.query(GitHubUserModel).filter(GitHubUserModel.organization == company_name).all()
-    return users
+@router.get("/manager/users/details", response_model=List[GitHubUserDetails])
+async def get_users_for_manager(
+        db: Session = Depends(get_db),
+        current_user: UserModel = Depends(get_current_user)
+    ):
+        # Verificar si el usuario actual es manager
+        if not current_user.is_manager:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access forbidden: Only managers can access this resource.")
+
+        try:
+            # Obtener todos los usuarios de la misma organización que el manager
+            company_name = current_user.company
+            users = (
+                db.query(
+                    GitHubUserModel.id,
+                    GitHubUserModel.username,
+                    GitHubUserModel.html_url,
+                    GitHubUserModel.avatar_url,
+                    GitHubUserModel.organization,
+                    GitHubUserModel.stars,
+                    GitHubUserModel.dominant_language,
+                    func.sum(UserInteractions.commits_juntos).label("commits"),
+                    func.sum(UserInteractions.contributions_juntas).label("contributions"),
+                    func.sum(UserInteractions.pull_requests_comentados).label("pullRequests"),
+                    func.sum(UserInteractions.revisiones).label("reviews"),
+                )
+                .join(UserInteractions, GitHubUserModel.id == UserInteractions.user_1)
+                .filter(GitHubUserModel.organization == company_name)
+                .group_by(GitHubUserModel.id)
+                .all()
+            )
+
+            if not users:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No users found for the manager's organization.")
+
+            # Formatear los resultados para serializar fácilmente
+            user_details = [
+                {
+                    "id": user.id,
+                    "username": user.username,
+                    "html_url": user.html_url,
+                    "avatar_url": user.avatar_url,
+                    "organization": user.organization,
+                    "stars": user.stars,
+                    "dominant_language": user.dominant_language,
+                    "commits": user.commits or 0,
+                    "contributions": user.contributions or 0,
+                    "pullRequests": user.pullRequests or 0,
+                    "reviews": user.reviews or 0,
+                }
+                for user in users
+            ]
+
+            return user_details
+
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @router.get("/users/", response_model=List[UserResponse])
 async def get_all_users(db: Session = Depends(get_db), current_user: UserModel = Depends(get_current_user)):

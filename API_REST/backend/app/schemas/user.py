@@ -93,6 +93,8 @@ class UserRepoContributionsSchema(BaseModel):
 class GrupoTrabajo(BaseModel):
     grupo_id: int
     usuarios: List[int]
+    leader_id: Optional[int] = None  # Puede ser None si no hay líder definido
+
 
 class UserRepoCommitsSchema(BaseModel):
     id: int
@@ -117,3 +119,21 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: Optional[str] = None
     is_admin: Optional[bool] = False
+
+
+
+class GitHubUserDetails(BaseModel):
+    id: int
+    username: str
+    html_url: str
+    avatar_url: str
+    organization: str
+    stars: int
+    dominant_language: str
+    commits: int
+    contributions: int
+    pullRequests: int
+    reviews: int
+
+    class Config:
+        orm_mode = True

@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from joblib import load
 import pandas as pd
 from typing import List
 from app.database.database import get_db
@@ -8,40 +7,42 @@ from app.models.user import GitHubUserModel, UserInteractions
 from app.schemas.user import UserRecommendationResponse
 import os
 import logging
+import tensorflow as tf
+from joblib import load
 
 router = APIRouter()
 
-@router.get('/users/{user_id}/recommendations', response_model=List[UserRecommendationResponse])
-async def get_user_recommendations(user_id: int, db: Session = Depends(get_db)):
+@router.get('/users/{usernamegt}/recommendations', response_model=List[UserRecommendationResponse])
+async def get_user_recommendations(usernamegt: str, db: Session = Depends(get_db)):
     # Configurar el logger
     logger = logging.getLogger(__name__)
 
     # Verificar que el usuario existe
-    user = db.query(GitHubUserModel).filter_by(id=user_id).first()
+    user = db.query(GitHubUserModel).filter_by(username=usernamegt).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
     # Cargar el modelo entrenado y el escalador
-    model_path = os.path.join('/app/modelos', 'modelo_colaboracion.joblib')
+    model_path = os.path.join('/app/modelos', 'modelo_colaboracion_nn.h5')
     scaler_path = os.path.join('/app/modelos', 'scaler.joblib')
     try:
-        model = load(model_path)
-        scaler = load(scaler_path)
+        model = tf.keras.models.load_model(model_path)  # Cargar el modelo de red neuronal
+        scaler = load(scaler_path)  # Cargar el escalador
     except FileNotFoundError:
         raise HTTPException(status_code=500, detail="El modelo o el escalador no están entrenados o no se encuentra el archivo.")
 
     # Obtener todos los usuarios excepto el actual
-    all_users = db.query(GitHubUserModel).filter(GitHubUserModel.id != user_id).all()
+    all_users = db.query(GitHubUserModel).filter(GitHubUserModel.username != usernamegt).all()
 
     # Obtener todas las interacciones existentes del usuario actual con otros usuarios
     interactions = db.query(UserInteractions).filter(
-        (UserInteractions.user_1 == user_id) | (UserInteractions.user_2 == user_id)
+        (UserInteractions.user_1 == user.id) | (UserInteractions.user_2 == user.id)
     ).all()
 
     # Crear un diccionario para acceder rápidamente a las interacciones por pares de usuarios
     interaction_dict = {}
     for interaction in interactions:
-        other_user_id = interaction.user_2 if interaction.user_1 == user_id else interaction.user_1
+        other_user_id = interaction.user_2 if interaction.user_1 == user.id else interaction.user_1
         interaction_dict[other_user_id] = interaction
 
     recommendations = []
@@ -61,17 +62,12 @@ async def get_user_recommendations(user_id: int, db: Session = Depends(get_db)):
             }
         else:
             # Estimar características para usuarios sin interacciones previas
-            # Por ejemplo, utilizar valores promedio de las interacciones existentes
-            # Puedes ajustar esta parte según tus necesidades y disponibilidad de datos
-
-            # Obtener promedios de características del usuario actual con otros usuarios
             if interactions:
                 avg_commits = sum([i.commits_juntos for i in interactions]) / len(interactions)
                 avg_contributions = sum([i.contributions_juntas for i in interactions]) / len(interactions)
                 avg_pull_requests = sum([i.pull_requests_comentados for i in interactions]) / len(interactions)
                 avg_revisiones = sum([i.revisiones for i in interactions]) / len(interactions)
             else:
-                # Si el usuario no tiene interacciones, usar valores promedio globales o valores por defecto
                 avg_commits = db.query(db.func.avg(UserInteractions.commits_juntos)).scalar() or 0
                 avg_contributions = db.query(db.func.avg(UserInteractions.contributions_juntas)).scalar() or 0
                 avg_pull_requests = db.query(db.func.avg(UserInteractions.pull_requests_comentados)).scalar() or 0
@@ -90,11 +86,11 @@ async def get_user_recommendations(user_id: int, db: Session = Depends(get_db)):
         # Aplicar el mismo escalado que se utilizó durante el entrenamiento
         X_new_scaled = scaler.transform(X_new)
 
-        # Predecir la probabilidad de colaboración
-        probabilidad = model.predict_proba(X_new_scaled)[0][1]
+        # Predecir la probabilidad de colaboración con el modelo de red neuronal
+        probabilidad = model.predict(X_new_scaled)[0][0]  # La salida es un valor entre 0 y 1
 
         # Agregar a la lista de recomendaciones
-        if probabilidad < 0.9 and probabilidad > 0.8:
+        if probabilidad >= 0.5:  # Filtrar por una probabilidad mínima, si es necesario
             recommendations.append({
                 'user': other_user,
                 'probabilidad': probabilidad
