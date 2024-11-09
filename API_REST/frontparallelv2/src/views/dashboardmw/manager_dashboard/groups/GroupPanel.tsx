@@ -23,15 +23,17 @@ interface GroupPanelProps {
     userIds: number[];
     users: GitHubUser[];
     leaderId: number | null;
+    expanded: boolean;
+    onToggleExpand: () => void;
+    searchTerm: string; // Nuevo prop para el término de búsqueda
 }
 
-const GroupPanel: React.FC<GroupPanelProps> = ({ groupId, userIds, users, leaderId }) => {
-    // Filtra los usuarios del grupo
+const GroupPanel: React.FC<GroupPanelProps> = ({ groupId, userIds, users, leaderId, expanded, onToggleExpand, searchTerm }) => {
+    // Filtra los usuarios del grupo en función del término de búsqueda
     const groupUsers = userIds
         .map(userId => users.find(user => user.id === userId))
-        .filter(user => user !== undefined) as GitHubUser[];
+        .filter(user => user !== undefined && (searchTerm ? user.username.toLowerCase().includes(searchTerm.toLowerCase()) : true)) as GitHubUser[];
 
-    // Extrae detalles específicos para la tabla, incluyendo el avatar y si es líder
     const groupDetails = groupUsers.map(user => ({
         id: user.id,
         name: user.username,
@@ -44,7 +46,7 @@ const GroupPanel: React.FC<GroupPanelProps> = ({ groupId, userIds, users, leader
     }));
 
     return (
-        <Accordion>
+        <Accordion expanded={expanded} onChange={onToggleExpand}>
             <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
                 aria-controls={`panel-${groupId}-content`}
@@ -53,7 +55,13 @@ const GroupPanel: React.FC<GroupPanelProps> = ({ groupId, userIds, users, leader
                 <Typography variant="h6">Grupo {groupId}</Typography>
             </AccordionSummary>
             <AccordionDetails>
-                <SimpleTable details={groupDetails} /> {/* Tabla con detalles, incluyendo avatar */}
+                {groupDetails.length > 0 ? (
+                    <SimpleTable details={groupDetails} />
+                ) : (
+                    <Typography variant="body2" color="textSecondary">
+                        No se encontraron usuarios en este grupo para el término de búsqueda.
+                    </Typography>
+                )}
             </AccordionDetails>
         </Accordion>
     );

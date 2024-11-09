@@ -80,7 +80,7 @@ def entrenar_modelo_colaboracion():
         X_test_scaled = scaler.transform(X_test)
     
         # Entrenar un modelo de Regresión Logística
-        model = LogisticRegression(max_iter=1000, random_state=42)
+        model = LogisticRegression(max_iter=10000000, random_state=420)
         model.fit(X_train_scaled, y_train)
     
         # Evaluar el modelo en el conjunto de prueba
@@ -102,6 +102,7 @@ def entrenar_modelo_colaboracion():
         # Guardar el modelo
         model_path = os.path.join(model_dir, 'modelo_colaboracion.joblib')
         dump(model, model_path)
+        dump(scaler, os.path.join(model_dir, 'scaler.joblib'))
         logger.info("Modelo guardado exitosamente")
     
         return test_accuracy

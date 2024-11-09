@@ -36,7 +36,7 @@ interface SimpleTableProps {
 
 export default function SimpleTable({ details }: SimpleTableProps) {
   return (
-    <Box width="100%" overflow="auto">
+    <Box width="100%" style={{ top: '30px'}} overflow="auto">
       <StyledTable>
         <TableHead>
           <TableRow>

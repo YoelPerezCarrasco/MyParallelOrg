@@ -11,6 +11,8 @@ services:
     volumes:
       - modelos:/app/modelos  # Monta el directorio 'modelos' en el contenedor
       - data:/app/data  # Monta el directorio 'data' en el contenedor
+    env_file:
+      - .env
 
   db:
     image: postgres:latest

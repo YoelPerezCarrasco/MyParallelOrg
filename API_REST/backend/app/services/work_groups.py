@@ -31,7 +31,7 @@ def generar_grupos_de_trabajo(org_name: str) -> pd.DataFrame:
         # Cargar el modelo entrenado
         model_dir = '/app/modelos'
         model_path = os.path.join(model_dir, 'modelo_colaboracion.joblib')
-        scaler_path = os.path.join(model_dir, 'scaler_colaboracion.joblib')
+        scaler_path = os.path.join(model_dir, 'scaler.joblib')
         modelo = load(model_path)
         scaler = load(scaler_path)
         logger.info("Modelo y escalador cargados con éxito")

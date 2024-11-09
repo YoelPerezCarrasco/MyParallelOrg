@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-SQLALCHEMY_DATABASE_URL = "postgresql://user:password@db:5432/mydatabase"
+SQLALCHEMY_DATABASE_URL = os.getenv('DATABASE_URL')
 
 if os.getenv('SPHINX_BUILD') == 'true':
     engine = None  # O cualquier otra cosa que no inicie la conexión real

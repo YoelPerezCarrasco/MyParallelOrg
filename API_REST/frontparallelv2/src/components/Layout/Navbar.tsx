@@ -104,10 +104,10 @@ const Navbar: React.FC = () => {
               <>
                 <li>
                   <Link to="/manager/section">
-                    <i className='bx bx-briefcase'></i>
-                    <span className="links_name">Sección Manager</span>
+                    <i className='bx bx-chart'></i>
+                    <span className="links_name">Estadísticas Manager</span>
                   </Link>
-                  <span className="tooltip">Manager</span>
+                  <span className="tooltip">Estadísticas</span>
                 </li>
                 {/* Puedes añadir más enlaces específicos para managers aquí */}
               </>

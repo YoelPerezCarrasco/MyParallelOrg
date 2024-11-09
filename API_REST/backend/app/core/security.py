@@ -1,13 +1,14 @@
+import os
 from passlib.context import CryptContext
 from jose import jwt
 from datetime import datetime, timedelta
-from app.core.config import ALGORITHM, SECRET_KEY
 from sqlalchemy.orm import Session
 from app.models.user import GamificationConfig
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-
+ALGORITHM= os.getenv("ALGORITHM")
+SECRET_KEY= os.getenv("SECRET_KEY")
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 

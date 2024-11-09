@@ -140,3 +140,17 @@ class GruposTrabajo(Base):
 
     # Relación opcional para vincular usuarios
     user = relationship("GitHubUserModel", backref="grupos_trabajo", foreign_keys=[usuario_id])
+
+class ProjectModel(Base):
+    __tablename__ = "projects"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True, nullable=False)
+    description = Column(String, nullable=True)
+    url = Column(String, nullable=True)  # Corresponde a "html_url"
+    organization = Column(String, index=True)  # Organización a la que pertenece el proyecto
+    created_at = Column(DateTime, nullable=False)
+    updated_at = Column(DateTime, nullable=False)
+    language = Column(String, nullable=True)
+    stargazers_count = Column(Integer, default=0)
+    forks_count = Column(Integer, default=0)

@@ -1,4 +1,5 @@
 from http.client import HTTPException
+import os
 import httpx
 import logging
 from typing import List
@@ -12,8 +13,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Tu token de autenticación de GitHub
-GITHUB_TOKEN = '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'
-
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 async def fetch_github_user(username: str) -> dict:
     url = f"https://api.github.com/users/{username}"
     headers = {

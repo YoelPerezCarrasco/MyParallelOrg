@@ -6,12 +6,17 @@ from app.models.user import GitHubUserModel
 from app.services.github import fetch_github_org_repos, fetch_github_repo_contributors, fetch_github_repo_commits, fetch_github_user_stars, fetch_pull_request_comments, fetch_pull_request_reviews, fetch_pull_requests
 from app.services.connections import build_user_graph, store_or_get_user, store_pull_request, store_pull_request_comment, store_pull_request_review, store_repo_contribution, store_repo_commit, update_users_with_dominant_language2
 from networkx.readwrite import json_graph
+from app.models.user import UserModel
+from app.services.auth import get_current_user
 import random
 import logging
 from typing import List, Dict
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+GITHUB_API_URL = "https://api.github.com"
+
+from app.services.github import GITHUB_TOKEN
 
 continents = ['Africa', 'Asia', 'Europe', 'North America', 'South America', 'Oceania', 'Antarctica']
 
@@ -150,3 +155,60 @@ async def get_user_connections(org_name: str, db: Session = Depends(get_db)):
         })
 
     return {"nodes": nodes, "edges": edges}
+
+
+
+
+@router.get("/organization/manager/github_repos", response_model=List[dict])
+async def get_github_repositories(
+    db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user)
+):
+    if not current_user.is_manager:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: Only managers can access this resource."
+        )
+
+    # Obtener la organización del manager actual
+    organization = current_user.organization
+
+    # Verificar si el token de GitHub está disponible
+    if not GITHUB_TOKEN:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="GitHub token not configured in environment."
+        )
+
+    # Hacer la solicitud a la API de GitHub
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github+json"
+    }
+    url = f"{GITHUB_API_URL}/orgs/{organization}/repos"
+    response = requests.get(url, headers=headers)
+
+    if response.status_code != 200:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve repositories from GitHub."
+        )
+
+    # Procesar y devolver solo los campos necesarios
+    repos_data = response.json()
+    repositories = [
+        {
+            "id": repo["id"],
+            "name": repo["name"],
+            "description": repo.get("description", ""),
+            "html_url": repo["html_url"],
+            "created_at": repo["created_at"],
+            "updated_at": repo["updated_at"],
+            "language": repo["language"],
+            "stargazers_count": repo["stargazers_count"],
+            "forks_count": repo["forks_count"]
+        }
+        for repo in repos_data
+    ]
+
+    return repositories

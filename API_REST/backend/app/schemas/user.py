@@ -137,3 +137,14 @@ class GitHubUserDetails(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+
+class ProjectResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+    url: str
+
+    class Config:
+        orm_mode = True
