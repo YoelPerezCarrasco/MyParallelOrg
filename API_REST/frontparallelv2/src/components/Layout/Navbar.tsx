@@ -103,7 +103,7 @@ const Navbar: React.FC = () => {
             {is_manager && (
               <>
                 <li>
-                  <Link to="/manager/section">
+                  <Link to="/manager/analytics">
                     <i className='bx bx-chart'></i>
                     <span className="links_name">Estadísticas Manager</span>
                   </Link>

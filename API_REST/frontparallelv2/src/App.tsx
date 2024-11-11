@@ -22,6 +22,8 @@ import 'bootstrap/dist/js/bootstrap.bundle.min';
 import CssBaseline from '@mui/material/CssBaseline';
 import { styled } from '@mui/material/styles';
 import WorkerContent from './views/dashboardmw/worker_dashboard/WorkerContent';
+import Dashboard from './views/dashboardmw/manager_dashboard/Stadistics';
+
 
 const RootContainer = styled('div')({
   /* Estilos del scrollbar */
@@ -106,6 +108,8 @@ const ManagerRoutes: React.FC = () => (
     <Route path="dashboard" element={<ManagerContent />} />
     <Route path="/graphs/:organization" element={<UserGraph />} />
     <Route path="settings" element={<Setting />} />
+    <Route path="analytics" element={<Dashboard />} />
+
     {/* Agrega más rutas de manager aquí */}
   </Routes>
 );
