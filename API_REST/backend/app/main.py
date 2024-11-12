@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.services.gamification import actualizar_puntos_usuarios
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, users, github, prediction, manager, admin_gamification, admin_ml, work_groups, messages, stadistics  # Importa los routers
+from app.routers import auth, users, github, prediction, manager, admin_gamification, admin_ml, work_groups, messages, stadistics, projects  # Importa los routers
 from app.database.database import init_db  # Importa la función init_db
 from app.database.database import SessionLocal
 
@@ -45,6 +45,7 @@ app.include_router(admin_ml.router, prefix="/adminml", tags=["Adminml"])
 app.include_router(work_groups.router, prefix="/workgroups", tags=["WorkGroups"])
 app.include_router(messages.router, prefix="/messages", tags=["Messages"])
 app.include_router(stadistics.router, prefix="/stadistics", tags=["Stadistics"])
+app.include_router(projects.router, prefix="/projects", tags=["Projects"])
 # Configuración de logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

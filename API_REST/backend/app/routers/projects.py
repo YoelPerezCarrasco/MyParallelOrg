@@ -1,0 +1,121 @@
+from typing import List
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from app.database.database import get_db
+from app.services.auth import get_current_user
+from app.models.user import GruposTrabajo, GitHubUserModel, ProjectModel, UserModel
+from app.schemas.user import ProjectAssignment, ProjectSchema
+
+router = APIRouter()
+
+# Helper function to get the GitHub user model for the current user
+def get_github_user(db: Session, current_user: UserModel) -> GitHubUserModel:
+    github_user = db.query(GitHubUserModel).filter(GitHubUserModel.username == current_user.username).first()
+    if not github_user:
+        raise HTTPException(status_code=404, detail="Usuario de GitHub no encontrado.")
+    return github_user
+
+
+@router.get("/projects/group/{group_id}", response_model=ProjectSchema)
+def get_group_project(
+    group_id: int,
+    current_user: UserModel = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    github_user = get_github_user(db, current_user)
+
+    # Verificar si el usuario pertenece al grupo
+    user_group = db.query(GruposTrabajo).filter(GruposTrabajo.usuario_id == github_user.id).first()
+    if not user_group or user_group.grupo_id != group_id:
+        raise HTTPException(status_code=403, detail="No tienes acceso a este grupo.")
+    
+    # Obtener el grupo de trabajo y su proyecto
+    group = db.query(GruposTrabajo).filter(GruposTrabajo.grupo_id == group_id).first()
+    if not group or not group.project_id:
+        raise HTTPException(status_code=404, detail="El grupo no tiene un proyecto asignado.")
+    
+    project = db.query(ProjectModel).filter(ProjectModel.id == group.project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="El proyecto asignado no existe.")
+    
+    return {
+        "id": project.id,
+        "name": project.name,
+        "description": project.description,
+        "url": project.url,
+        "language": project.language,
+        "stargazers_count": project.stargazers_count,
+        "forks_count": project.forks_count
+    }
+
+
+@router.get("/projects/available", response_model=List[ProjectSchema])
+def get_available_projects(
+    current_user: UserModel = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    github_user = get_github_user(db, current_user)
+
+    # Verificar que el usuario es líder en su grupo
+    user_group = db.query(GruposTrabajo).filter(GruposTrabajo.usuario_id == github_user.id).first()
+    if not user_group or not user_group.is_leader:
+        raise HTTPException(status_code=403, detail="No tienes permisos para realizar esta acción.")
+    
+    # Obtener proyectos que no están asignados a ningún grupo
+    assigned_project_ids = db.query(GruposTrabajo.project_id).filter(GruposTrabajo.project_id != None).distinct()
+    available_projects = db.query(ProjectModel).filter(~ProjectModel.id.in_(assigned_project_ids)).all()
+    
+    projects = [
+        {
+            "id": project.id,
+            "name": project.name,
+            "description": project.description,
+            "url": project.url,
+            "language": project.language,
+            "stargazers_count": project.stargazers_count,
+            "forks_count": project.forks_count
+        }
+        for project in available_projects
+    ]
+    return projects
+
+
+@router.post("/projects/assign")
+def assign_project_to_group(
+    assignment: ProjectAssignment,
+    current_user: UserModel = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    github_user = get_github_user(db, current_user)
+
+    # Verificar que el usuario es líder del grupo especificado
+    user_group = db.query(GruposTrabajo).filter(
+        GruposTrabajo.usuario_id == github_user.id,
+        GruposTrabajo.grupo_id == assignment.group_id,
+        GruposTrabajo.is_leader == True
+    ).first()
+    if not user_group:
+        raise HTTPException(status_code=403, detail="No tienes permisos para asignar proyectos a este grupo.")
+    
+    # Verificar que el proyecto está disponible
+    assigned_project = db.query(GruposTrabajo).filter(GruposTrabajo.project_id == assignment.project_id).first()
+    if assigned_project:
+        raise HTTPException(status_code=400, detail="El proyecto ya está asignado a otro grupo.")
+    
+    # Asignar el proyecto al grupo
+    groups = db.query(GruposTrabajo).filter(GruposTrabajo.grupo_id == assignment.group_id).all()
+    for group_member in groups:
+        group_member.project_id = assignment.project_id
+    db.commit()
+    
+    # Obtener los detalles del proyecto asignado
+    project = db.query(ProjectModel).filter(ProjectModel.id == assignment.project_id).first()
+    return {
+        "id": project.id,
+        "name": project.name,
+        "description": project.description,
+        "url": project.url,
+        "language": project.language,
+        "stargazers_count": project.stargazers_count,
+        "forks_count": project.forks_count
+    }

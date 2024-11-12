@@ -7,7 +7,6 @@ from app.models.user import GitHubUserModel, UserInteractions
 from app.schemas.user import UserRecommendationResponse
 import os
 import logging
-import tensorflow as tf
 from joblib import load
 
 router = APIRouter()
@@ -23,10 +22,10 @@ async def get_user_recommendations(usernamegt: str, db: Session = Depends(get_db
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
     # Cargar el modelo entrenado y el escalador
-    model_path = os.path.join('/app/modelos', 'modelo_colaboracion_nn.h5')
+    model_path = os.path.join('/app/modelos', 'modelo_colaboracion.joblib')
     scaler_path = os.path.join('/app/modelos', 'scaler.joblib')
     try:
-        model = tf.keras.models.load_model(model_path)  # Cargar el modelo de red neuronal
+        model = load(model_path)  # Cargar el modelo de sklearn en formato joblib
         scaler = load(scaler_path)  # Cargar el escalador
     except FileNotFoundError:
         raise HTTPException(status_code=500, detail="El modelo o el escalador no están entrenados o no se encuentra el archivo.")
@@ -86,11 +85,11 @@ async def get_user_recommendations(usernamegt: str, db: Session = Depends(get_db
         # Aplicar el mismo escalado que se utilizó durante el entrenamiento
         X_new_scaled = scaler.transform(X_new)
 
-        # Predecir la probabilidad de colaboración con el modelo de red neuronal
-        probabilidad = model.predict(X_new_scaled)[0][0]  # La salida es un valor entre 0 y 1
+        # Predecir la probabilidad de colaboración con el modelo
+        probabilidad = model.predict_proba(X_new_scaled)[:, 1][0]  # La salida es un valor entre 0 y 1
 
-        # Agregar a la lista de recomendaciones
-        if probabilidad >= 0.5:  # Filtrar por una probabilidad mínima, si es necesario
+        # Agregar a la lista de recomendaciones si la probabilidad es mayor o igual al umbral (0.5)
+        if probabilidad >= 0.5:
             recommendations.append({
                 'user': other_user,
                 'probabilidad': probabilidad

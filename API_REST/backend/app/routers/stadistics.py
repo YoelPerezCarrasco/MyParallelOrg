@@ -87,6 +87,39 @@ async def get_organization_projects(
     return sync_github_repos_with_projects(db, organization)
 
 
+# routers/projects.py
+
+from app.models.user import ProjectModel
+
+@router.get("/projects/group/{group_id}")
+def get_group_project(
+    group_id: int,
+    current_user: GitHubUserModel = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Verificar si el usuario pertenece al grupo
+    user_group = db.query(GruposTrabajo).filter(GruposTrabajo.usuario_id == current_user.id).first()
+    if not user_group or user_group.grupo_id != group_id:
+        raise HTTPException(status_code=403, detail="No tienes acceso a este grupo.")
+    
+    # Obtener el grupo de trabajo
+    group = db.query(GruposTrabajo).filter(GruposTrabajo.grupo_id == group_id).first()
+    if not group or not group.project_id:
+        raise HTTPException(status_code=404, detail="El grupo no tiene un proyecto asignado.")
+    
+    project = db.query(ProjectModel).filter(ProjectModel.id == group.project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="El proyecto asignado no existe.")
+    
+    return {
+        "id": project.id,
+        "name": project.name,
+        "description": project.description,
+        "url": project.url,
+        "language": project.language,
+        "stargazers_count": project.stargazers_count,
+        "forks_count": project.forks_count
+    }
 
 
 
@@ -157,50 +190,45 @@ def get_model_performance():
         logger.error(f"Ocurrió un error al obtener el rendimiento del modelo: {e}")
         return {"error": str(e)}
 
-@router.get("/api/estadisticas/colaboracion_tiempo")
-def get_colaboracion_tiempo_data(db: Session = Depends(get_db)):
+@router.get("/api/estadisticas/colaboracion_anual")
+def get_colaboracion_anual_data(db: Session = Depends(get_db)):
     # Obtener fechas relevantes
     today = datetime.utcnow()
-    first_day_this_month = today.replace(day=1)
-    first_day_last_month = (first_day_this_month - timedelta(days=1)).replace(day=1)
-    last_day_last_month = first_day_this_month - timedelta(days=1)
+    start_of_this_year = today.replace(month=1, day=1)
+    start_of_last_year = (start_of_this_year - timedelta(days=1)).replace(month=1, day=1)
+    end_of_last_year = start_of_this_year - timedelta(days=1)
 
-    # Función para obtener colaboraciones por día en un rango de fechas
-    def get_colaboraciones_por_dia(start_date, end_date):
+    # Función para obtener colaboraciones por mes en un rango de fechas
+    def get_colaboraciones_por_mes(start_date, end_date):
         colaboraciones = db.query(
-            func.date(PullRequest.created_at).label('date'),
+            func.date_trunc('month', PullRequest.created_at).label('month'),
             func.count(PullRequest.id).label('count')
         ).filter(
             PullRequest.created_at >= start_date,
             PullRequest.created_at <= end_date
         ).group_by(
-            func.date(PullRequest.created_at)
+            func.date_trunc('month', PullRequest.created_at)
         ).order_by(
-            func.date(PullRequest.created_at)
+            func.date_trunc('month', PullRequest.created_at)
         ).all()
-        return {record.date.day: record.count for record in colaboraciones}
+        return {record.month.month: record.count for record in colaboraciones}
 
-    # Obtener datos para este mes y el mes pasado
-    colaboraciones_this_month = get_colaboraciones_por_dia(first_day_this_month, today)
-    colaboraciones_last_month = get_colaboraciones_por_dia(first_day_last_month, last_day_last_month)
+    # Obtener datos para este año y el año pasado
+    colaboraciones_this_year = get_colaboraciones_por_mes(start_of_this_year, today)
+    colaboraciones_last_year = get_colaboraciones_por_mes(start_of_last_year, end_of_last_year)
 
-    # Determinar el número máximo de días para los meses
-    days_this_month = (today - first_day_this_month).days + 1
-    days_last_month = (last_day_last_month - first_day_last_month).days + 1
-    max_days = max(days_this_month, days_last_month)
+    # Generar etiquetas para el eje X (meses)
+    x_axis_labels = [str(month) for month in range(1, 13)]
 
-    # Generar etiquetas para el eje X
-    x_axis_labels = [str(day) for day in range(1, max_days + 1)]
-
-    # Mapear los datos a los días del mes
-    data_this_month = [colaboraciones_this_month.get(day, 0) for day in range(1, max_days + 1)]
-    data_last_month = [colaboraciones_last_month.get(day, 0) for day in range(1, max_days + 1)]
+    # Mapear los datos a los meses del año
+    data_this_year = [colaboraciones_this_year.get(month, 0) for month in range(1, 13)]
+    data_last_year = [colaboraciones_last_year.get(month, 0) for month in range(1, 13)]
 
     # Preparar la respuesta
     response = {
         "xAxis": x_axis_labels,
-        "thisMonth": data_this_month,
-        "lastMonth": data_last_month
+        "thisYear": data_this_year,
+        "lastYear": data_last_year
     }
 
     return response

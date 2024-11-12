@@ -1,6 +1,6 @@
 // GroupPanel.tsx
 import React from 'react';
-import { Accordion, AccordionSummary, AccordionDetails, Typography, Box } from '@mui/material';
+import { Accordion, AccordionSummary, AccordionDetails, Typography, Box, Avatar } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SimpleTable from './SimpleTable';
 
@@ -25,11 +25,10 @@ interface GroupPanelProps {
     leaderId: number | null;
     expanded: boolean;
     onToggleExpand: () => void;
-    searchTerm: string; // Nuevo prop para el término de búsqueda
+    searchTerm: string;
 }
 
 const GroupPanel: React.FC<GroupPanelProps> = ({ groupId, userIds, users, leaderId, expanded, onToggleExpand, searchTerm }) => {
-    // Filtra los usuarios del grupo en función del término de búsqueda
     const groupUsers = userIds
         .map(userId => users.find(user => user.id === userId))
         .filter(user => user !== undefined && (searchTerm ? user.username.toLowerCase().includes(searchTerm.toLowerCase()) : true)) as GitHubUser[];
@@ -45,6 +44,9 @@ const GroupPanel: React.FC<GroupPanelProps> = ({ groupId, userIds, users, leader
         isLeader: leaderId === user.id,
     }));
 
+    // Identificar al líder del equipo
+    const leader = groupDetails.find(user => user.isLeader);
+
     return (
         <Accordion expanded={expanded} onChange={onToggleExpand}>
             <AccordionSummary
@@ -52,7 +54,19 @@ const GroupPanel: React.FC<GroupPanelProps> = ({ groupId, userIds, users, leader
                 aria-controls={`panel-${groupId}-content`}
                 id={`panel-${groupId}-header`}
             >
-                <Typography variant="h6">Grupo {groupId}</Typography>
+                <Box display="flex" alignItems="center" flexDirection="column" width="100%">
+                    <Typography variant="h6" fontWeight="bold">
+                        Grupo de Trabajo {groupId}
+                    </Typography>
+                    {leader && (
+                        <Box display="flex" alignItems="center" mt={1}>
+                            <Avatar src={leader.avatarUrl} alt={leader.name} sx={{ width: 24, height: 24, mr: 1 }} />
+                            <Typography variant="subtitle2" color="primary">
+                                Team Leader: {leader.name}
+                            </Typography>
+                        </Box>
+                    )}
+                </Box>
             </AccordionSummary>
             <AccordionDetails>
                 {groupDetails.length > 0 ? (

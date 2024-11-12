@@ -11,6 +11,8 @@ from app.models.user import GruposTrabajo, UserModel, GitHubUserModel, UserInter
 from app.core.config import ACCESS_TOKEN_EXPIRES_MINUTES
 from app.core.security import pwd_context
 
+
+
 from datetime import timedelta
 
 
@@ -52,10 +54,16 @@ async def login(login_item: LoginItem, db: Session = Depends(get_db)):
     }
 
 @router.get("/users/me")
-async def read_users_me(current_user: UserModel = Depends(get_current_user)):
+async def read_users_me(db: Session = Depends(get_db), current_user: UserModel = Depends(get_current_user)):
+
+    github_user = db.query(GitHubUserModel).filter(GitHubUserModel.username == current_user.username).first()
+    if not github_user:
+        raise HTTPException(status_code=404, detail="No se encontró el usuario en GitHubUserModel.")
+
     return {
         "id": current_user.id,
         "username": current_user.username,
+        "id_github": github_user.id,
     }
 
 @router.post("/register/", status_code=201)

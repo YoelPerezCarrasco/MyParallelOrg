@@ -139,12 +139,27 @@ class GitHubUserDetails(BaseModel):
         orm_mode = True
 
 
+class ProjectAssignment(BaseModel):
+    group_id: int
+    project_id: int
 
 class ProjectResponse(BaseModel):
     id: int
     name: str
     description: Optional[str] = None
     url: str
+
+    class Config:
+        orm_mode = True
+
+class ProjectSchema(BaseModel):
+    id: int
+    name: str
+    description: Optional[str]
+    url: Optional[str]
+    language: Optional[str]
+    stargazers_count: int
+    forks_count: int
 
     class Config:
         orm_mode = True

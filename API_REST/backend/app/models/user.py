@@ -128,6 +128,7 @@ class Message(Base):
     sender = relationship("UserModel", foreign_keys=[sender_id])
     receiver = relationship("UserModel", foreign_keys=[receiver_id])
 
+# models/user.py
 
 class GruposTrabajo(Base):
     __tablename__ = 'grupos_trabajo'
@@ -135,12 +136,13 @@ class GruposTrabajo(Base):
     id = Column(Integer, primary_key=True, index=True)
     grupo_id = Column(Integer, index=True)
     usuario_id = Column(Integer, ForeignKey('github_users.id'), nullable=True)
-    organizacion = Column(String, index=True)  # Columna para identificar la organización
-    is_leader = Column(Boolean, default=False)  # Nueva columna para marcar al líder del grupo
+    organizacion = Column(String, index=True)
+    is_leader = Column(Boolean, default=False)
+    project_id = Column(Integer, ForeignKey('projects.id'), nullable=True)  # Nuevo campo
 
-    # Relación opcional para vincular usuarios
+    # Relaciones
     user = relationship("GitHubUserModel", backref="grupos_trabajo", foreign_keys=[usuario_id])
-
+    project = relationship("ProjectModel", backref="grupos_trabajo")  # Relación con el proyecto
 class ProjectModel(Base):
     __tablename__ = "projects"
     

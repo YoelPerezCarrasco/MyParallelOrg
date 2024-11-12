@@ -1,10 +1,12 @@
 // ManagerDashboard.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Typography, CircularProgress, Box, Paper, Divider, Grid } from '@mui/material';
+import { Container, Typography, CircularProgress, Box, Paper, Divider, Grid, Breadcrumbs, Link } from '@mui/material';
 import GroupPanel from './groups/GroupPanel';
 import SearchBar from './SearchBar';
-import OpenProjects from './OpenProjects'; // Importa el nuevo componente
+import OpenProjects from './OpenProjects';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'; // Icono informativo
+import { Stack } from '@mui/material';
 
 interface GitHubUser {
     id: number;
@@ -93,82 +95,116 @@ const ManagerDashboard: React.FC = () => {
     };
 
     return (
-        <Container maxWidth={false} disableGutters sx={{ height: '100vh', overflow: 'hidden' }}>
-            <Grid container spacing={0} sx={{ height: '100%' }}>
+        <Container maxWidth={false} disableGutters sx={{ height: '100vh', overflow: 'hidden', padding: 2 }}>
+            {/* Rutas de navegación */}
+
+            <Breadcrumbs aria-label="breadcrumb">
+                    <Link color="inherit" href="/" onClick={(e: { preventDefault: () => any; }) => e.preventDefault()}>
+                        Inicio
+                    </Link>
+                    <Link color="inherit" href="/dashboard" onClick={(e: { preventDefault: () => any; }) => e.preventDefault()}>
+                        Manager Dashboard
+                    </Link>
+                    <Typography color="textPrimary">Jerarquía Paralela</Typography>
+                </Breadcrumbs>
+                
+            <Box sx={{ padding: 2 }}>
+               
+            </Box>
+
+            <Grid container spacing={4} sx={{ height: '100%' }}>
                 {/* Columna izquierda: Búsqueda y lista de grupos */}
                 <Grid item xs={12} md={7} sx={{ height: '100%', overflow: 'auto', padding: 2 }}>
                     <Paper elevation={8} style={{ padding: '20px', backgroundColor: '#f9f9f9' }}>
-                        <Typography variant="h3" align="center" gutterBottom color="primary">
-                            Dashboard de Grupos
-                        </Typography>
-                        <Divider variant="middle" style={{ margin: '20px 0' }} />
-                        {userOrganization && (
-                            <Typography variant="h6" align="center" color="textSecondary">
-                                Organización: <strong>{userOrganization}</strong>
-                            </Typography>
-                        )}
-                        <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
 
-                    {isLoading ? (
-                        <Box
-                            display="flex"
-                            flexDirection="column"
-                            justifyContent="center"
-                            alignItems="center"
-                            height="50vh"
-                            bgcolor="#f0f0f0"
-                            borderRadius="8px"
-                            mt={4}
-                        >
-                            <CircularProgress color="secondary" size={50} />
-                            <Typography variant="h5" marginTop={2}>
-                                Cargando datos...
-                            </Typography>
-                        </Box>
-                    ) : filteredGroups.length > 0 ? (
-                        <Box mt={4}>
-                            {filteredGroups.map(group => (
-                                <Box key={group.grupo_id} mb={3}>
-                                    <GroupPanel
-                                        groupId={group.grupo_id}
-                                        userIds={group.usuarios}
-                                        users={users}
-                                        leaderId={group.leader_id}
-                                        expanded={searchTerm ? true : expandedGroup === group.grupo_id}
-                                        onToggleExpand={() => handleToggleExpand(group.grupo_id)}
-                                        searchTerm={searchTerm}
-                                    />
-                                </Box>
-                            ))}
-                        </Box>
-                    ) : (
-                        <Box mt={4} textAlign="center">
-                            <Typography variant="body1" align="center" color="textSecondary">
-                                No hay grupos formados aún.
-                            </Typography>
-                        </Box>
-                    )}
+                    <Paper elevation={3} sx={{ padding: 2, marginBottom: 2, backgroundColor: '#f4f6f8' }}>
+                    <Typography variant="h6" align="center" color="textSecondary" sx={{ fontWeight: 'medium' }}>
+                        Organización: <strong>{userOrganization}</strong>
+                    </Typography>
+                </Paper>   
+                <Box display="flex" justifyContent="left" alignItems="center" sx={{ marginBottom: 2 }}>
+                    <InfoOutlinedIcon color="primary" sx={{ marginRight: 5 }} />
+                    <Typography variant="body1" align="justify" color="textSecondary" sx={{ maxWidth: '100%' }}>
+                        Esta sección muestra los <strong>Grupos de Trabajo sugeridos</strong> dentro de la organización 
+                        "<strong>{userOrganization}</strong>". Los grupos se crean en base a las <strong>interacciones 
+                        colaborativas</strong> en proyectos activos, optimizando el trabajo en equipo según las <strong>contribuciones 
+                        y participaciones</strong> de cada miembro en los proyectos abiertos.
+                    </Typography>
+                </Box>
 
-                </Paper>
 
-                </Grid>
 
-                {/* Columna derecha: Componente de Proyectos Abiertos */}
-                <Grid item xs={12} md={5} sx={{ height: '100%', overflow: 'auto', padding: 2 }}>
-                    <OpenProjects /> {/* Componente externo para mostrar los proyectos */}
-                    <Box mt={4}>
-                        <Paper elevation={8} style={{ padding: '20px', backgroundColor: '#f3f4f6' }}>
-                            <Typography variant="h4" gutterBottom color="secondary">
-                                Estadísticas de Grupos
-                            </Typography>
-                            <Box mt={3}>
-                                <Typography variant="body1">Grupos Totales: {grupos.length}</Typography>
-                                <Typography variant="body1">Usuarios Totales: {users.length}</Typography>
-                                <Typography variant="body1">Proyectos Activos: {grupos.length}</Typography>
+                <Paper elevation={3} sx={{ padding: 2, marginBottom: 3, backgroundColor: '#ffffff' }}>
+                    <Typography variant="h6" align="center" color="primary">
+                        Buscar Usuarios
+                    </Typography>
+                    <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+
+                <Divider variant="middle" style={{ margin: '20px 0' }} />
+                        {isLoading ? (
+                            <Box
+                                display="flex"
+                                flexDirection="column"
+                                justifyContent="center"
+                                alignItems="center"
+                                height="50vh"
+                                bgcolor="#f0f0f0"
+                                borderRadius="8px"
+                                mt={4}
+                            >
+                                <CircularProgress color="secondary" size={50} />
+                                <Typography variant="h5" marginTop={2}>
+                                    Cargando datos...
+                                </Typography>
                             </Box>
-                        </Paper>
-                    </Box>
+                        ) : filteredGroups.length > 0 ? (
+                            <Box mt={4}>
+                                {filteredGroups.map(group => (
+                                    <Box key={group.grupo_id} mb={3}>
+                                        <GroupPanel
+                                            groupId={group.grupo_id}
+                                            userIds={group.usuarios}
+                                            users={users}
+                                            leaderId={group.leader_id}
+                                            expanded={searchTerm ? true : expandedGroup === group.grupo_id}
+                                            onToggleExpand={() => handleToggleExpand(group.grupo_id)}
+                                            searchTerm={searchTerm}
+                                        />
+                                    </Box>
+                                ))}
+                            </Box>
+                        ) : (
+                            <Box mt={4} textAlign="center">
+                                <Typography variant="body1" align="center" color="textSecondary">
+                                    No hay grupos formados aún.
+                                </Typography>
+                            </Box>
+                        )}
+                     </Paper>
+                    </Paper>
                 </Grid>
+
+            {/* Columna derecha: Proyectos Abiertos y Estadísticas de Grupos */}
+            <Grid item xs={12} md={5} sx={{ height: '100%', overflow: 'auto', padding: 3 }}>
+                {/* Sección de Proyectos Abiertos */}
+                
+                <Box display="flex" justifyContent="left" alignItems="center" sx={{ marginBottom: 2 }}>
+                    <Paper elevation={6} sx={{ padding: 3, backgroundColor: '#f9f9f9' }}>
+                        <Typography variant="h4" color="black" sx={{ fontWeight: 'bold', mb: 2 }}>
+                            Proyectos Abiertos
+                        </Typography>
+                        <InfoOutlinedIcon color="primary" sx={{ marginRight: 5 }} />
+
+                        <Typography variant="body1" align="justify" color="textSecondary" sx={{ maxWidth: '100%' }}>
+                        Lista de proyectos activos en la organización donde los grupos de trabajo están colaborando. Estos proyectos
+                            promueven la colaboración entre los equipos y ayudan a optimizar los recursos internos.
+                        </Typography>
+                        <OpenProjects /> {/* Renderiza el componente OpenProjects */}
+                    </Paper>
+                </Box>
+
+              
+            </Grid>
             </Grid>
         </Container>
     );

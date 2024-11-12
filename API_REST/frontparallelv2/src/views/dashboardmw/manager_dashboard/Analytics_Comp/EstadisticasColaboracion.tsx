@@ -3,20 +3,20 @@ import React, { useEffect, useState } from 'react';
 import { Paper, Typography } from '@mui/material';
 import ReactEcharts from 'echarts-for-react';
 
-interface ColaboracionTiempoData {
+interface ColaboracionAnualData {
   xAxis: string[];
-  thisMonth: number[];
-  lastMonth: number[];
+  thisYear: number[];
+  lastYear: number[];
 }
 
 const EstadisticasColaboracion: React.FC = () => {
-  const [data, setData] = useState<ColaboracionTiempoData | null>(null);
+  const [data, setData] = useState<ColaboracionAnualData | null>(null);
 
   useEffect(() => {
-    fetch('http://localhost:8000/stadistics/api/estadisticas/colaboracion_tiempo')
+    fetch('http://localhost:8000/stadistics/api/estadisticas/colaboracion_anual')
       .then(response => response.json())
       .then(data => setData(data))
-      .catch(error => console.error('Error fetching collaboration time data:', error));
+      .catch(error => console.error('Error fetching collaboration yearly data:', error));
   }, []);
 
   const getOption = () => {
@@ -57,17 +57,17 @@ const EstadisticasColaboracion: React.FC = () => {
       },
       series: [
         {
-          data: data.thisMonth,
+          data: data.thisYear,
           type: 'line',
-          name: 'Este mes',
+          name: 'Este año',
           smooth: true,
           symbolSize: 4,
           lineStyle: { width: 4 },
         },
         {
-          data: data.lastMonth,
+          data: data.lastYear,
           type: 'line',
-          name: 'Mes pasado',
+          name: 'Año pasado',
           smooth: true,
           symbolSize: 4,
           lineStyle: { width: 4 },
@@ -79,14 +79,15 @@ const EstadisticasColaboracion: React.FC = () => {
 
   return (
     <Paper elevation={3} sx={{ padding: 2 }}>
-      <Typography variant="h5">Colaboraciones por Día</Typography>
+      <Typography variant="h5">Colaboraciones por Mes</Typography>
       {data ? (
-        <><ReactEcharts style={{ height: '350px' }} option={getOption()} /><Typography variant="body2" color="textSecondary" sx={{ mt: 2 }}>
-                  Este gráfico muestra la cantidad de colaboraciones realizadas por día en la plataforma,
-                  comparando el mes actual con el mes anterior. Se incluyen commits y pull requests, lo que
-                  permite analizar la evolución de la actividad colaborativa.
-              </Typography></>
-        
+        <>
+          <ReactEcharts style={{ height: '350px' }} option={getOption()} />
+          <Typography variant="body2" color="textSecondary" sx={{ mt: 2 }}>
+            Este gráfico muestra la cantidad de colaboraciones realizadas cada mes, comparando el año actual con el año anterior.
+            Se incluyen métricas como commits y pull requests para analizar la evolución de la actividad colaborativa anual.
+          </Typography>
+        </>
       ) : (
         <Typography>Cargando datos...</Typography>
       )}
