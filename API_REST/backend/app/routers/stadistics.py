@@ -46,11 +46,13 @@ def sync_github_repos_with_projects(db: Session, organization: str) -> List[Proj
     repos_data = response.json()
     for repo in repos_data:
         # Comprobar si el repositorio ya existe en la base de datos
-        existing_project = db.query(ProjectModel).filter_by(
-            organization=organization, name=repo["name"]
-        ).first()
+        existing_project = db.query(ProjectModel).filter_by(name=repo["name"]).first()
 
-        if not existing_project:
+        if existing_project:
+            # Actualizar el campo de organización si es necesario
+            if existing_project.organization != organization:
+                existing_project.organization = organization
+        else:
             # Crear un nuevo proyecto si no existe
             new_project = ProjectModel(
                 name=repo["name"],
@@ -61,7 +63,7 @@ def sync_github_repos_with_projects(db: Session, organization: str) -> List[Proj
                 language=repo["language"],
                 stargazers_count=repo["stargazers_count"],
                 forks_count=repo["forks_count"],
-                organization=organization
+                organization=organization  # Asignar organización al nuevo proyecto
             )
             db.add(new_project)
 

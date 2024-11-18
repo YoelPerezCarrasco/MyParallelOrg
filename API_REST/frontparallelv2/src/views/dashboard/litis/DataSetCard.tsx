@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -11,68 +11,136 @@ import {
   TableRow,
   Paper,
   Button,
-  TextField,
   CircularProgress,
   Snackbar,
   Alert,
+  Select,
+  MenuItem,
+  Box,
 } from '@mui/material';
+
+interface Organization {
+  id: string;
+  name: string;
+}
 
 const DatasetCard: React.FC = () => {
   const [data, setData] = useState<any[]>([]);
-  const [orgName, setOrgName] = useState<string>('');
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [selectedOrg, setSelectedOrg] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const [fetchingOrgs, setFetchingOrgs] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchOrganizations();
+  }, []);
+
+  const fetchOrganizations = async () => {
+    setFetchingOrgs(true);
+    setError(null);
+    const token = localStorage.getItem('token');
+
+    try {
+      const response = await fetch('http://localhost:8000/github/organizations', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al obtener las organizaciones.');
+      }
+
+      const data = await response.json();
+      setOrganizations(data);
+    } catch (error) {
+      console.error('Error fetching organizations:', error);
+      setError('Hubo un problema al obtener las organizaciones. Por favor, inténtalo de nuevo.');
+    } finally {
+      setFetchingOrgs(false);
+    }
+  };
 
   const fetchDataset = async () => {
-    if (!orgName.trim()) {
-      setError('El nombre de la organización no puede estar vacío.');
+    if (!selectedOrg) {
+      setError('Debe seleccionar una organización.');
       return;
     }
 
     setLoading(true);
     setError(null);
+    const token = localStorage.getItem('token');
 
     try {
-      const response = await fetch(`http://localhost:8000/adminml/generateSim-dataset/${orgName}`);
+      const response = await fetch(`http://localhost:8000/adminml/generateSim-dataset/${selectedOrg}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       if (!response.ok) {
-        throw new Error("Error en la respuesta del servidor.");
+        throw new Error('Error en la respuesta del servidor.');
       }
+
       const result = await response.json();
       setData(result);
+      setSuccessMessage('Dataset generado con éxito.');
     } catch (error) {
-      console.error("Error fetching dataset:", error);
-      setError("Hubo un problema al generar el dataset. Por favor, inténtalo de nuevo.");
+      console.error('Error fetching dataset:', error);
+      setError('Hubo un problema al generar el dataset. Por favor, inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Card>
+    <Card sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
       <CardContent>
         <Typography variant="h5" gutterBottom>
           Generar Dataset para Entrenamiento
         </Typography>
 
-        <TextField
-          label="Nombre de la Organización"
-          value={orgName}
-          onChange={(e) => setOrgName(e.target.value)}
-          fullWidth
-          margin="normal"
-          error={!orgName.trim()}
-          helperText={!orgName.trim() ? "Este campo es obligatorio" : ""}
-        />
+        {fetchingOrgs ? (
+          <Box display="flex" justifyContent="center" alignItems="center" mt={2}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <>
+            <Typography variant="body1" gutterBottom>
+              Selecciona una Organización
+            </Typography>
 
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={fetchDataset}
-          disabled={loading || !orgName.trim()}
-          startIcon={loading ? <CircularProgress size={24} /> : null}
-        >
-          {loading ? "Generando..." : "Generar Dataset"}
-        </Button>
+            <Select
+              value={selectedOrg}
+              onChange={(e) => setSelectedOrg(e.target.value)}
+              fullWidth
+              displayEmpty
+              disabled={loading}
+            >
+              <MenuItem value="" disabled>
+                Selecciona una organización
+              </MenuItem>
+              {organizations.map((org) => (
+                <MenuItem key={org.id} value={org.name}>
+                  {org.name}
+                </MenuItem>
+              ))}
+            </Select>
+
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={fetchDataset}
+              disabled={loading || !selectedOrg}
+              startIcon={loading ? <CircularProgress size={24} /> : null}
+              sx={{ mt: 2 }}
+            >
+              {loading ? 'Generando...' : 'Generar Dataset'}
+            </Button>
+          </>
+        )}
 
         {error && (
           <Snackbar open autoHideDuration={6000} onClose={() => setError(null)}>
@@ -82,8 +150,16 @@ const DatasetCard: React.FC = () => {
           </Snackbar>
         )}
 
+        {successMessage && (
+          <Snackbar open autoHideDuration={6000} onClose={() => setSuccessMessage(null)}>
+            <Alert onClose={() => setSuccessMessage(null)} severity="success">
+              {successMessage}
+            </Alert>
+          </Snackbar>
+        )}
+
         {data.length > 0 ? (
-          <TableContainer component={Paper} style={{ marginTop: '20px', maxHeight: '400px' }}>
+          <TableContainer component={Paper} sx={{ mt: 3, maxHeight: 400 }}>
             <Table stickyHeader>
               <TableHead>
                 <TableRow>
@@ -113,7 +189,7 @@ const DatasetCard: React.FC = () => {
           </TableContainer>
         ) : (
           !loading && (
-            <Typography variant="body2" color="textSecondary" align="center" style={{ marginTop: '20px' }}>
+            <Typography variant="body2" color="textSecondary" align="center" sx={{ mt: 2 }}>
               No hay datos disponibles para mostrar.
             </Typography>
           )

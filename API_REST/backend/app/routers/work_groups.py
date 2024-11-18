@@ -1,3 +1,4 @@
+from collections import defaultdict
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 import json
@@ -10,7 +11,6 @@ from app.schemas.user import GrupoTrabajo, OrgRequest  # Asegúrate de definir e
 from app.services.work_groups import generar_grupos_de_trabajo
 
 router = APIRouter()
-
 @router.post("/manager/groups/generate")
 async def generate_groups(request: OrgRequest, db: Session = Depends(get_db)):
     """
@@ -18,12 +18,8 @@ async def generate_groups(request: OrgRequest, db: Session = Depends(get_db)):
     """
     org = request.org
 
-    # Borra los grupos previos de esta organización en la base de datos
-    db.query(GruposTrabajo).filter(GruposTrabajo.organizacion == org).delete()
-    db.commit()
-
     # Genera los nuevos grupos de trabajo y obtén el DataFrame
-    grupos_df = generar_grupos_de_trabajo(org)  # La función devuelve un DataFrame con 'grupo_id' y 'usuarios'
+    grupos_df = generar_grupos_de_trabajo(org, db)  # La función devuelve un DataFrame con 'grupo_id' y 'usuarios'
 
     # Inserta los nuevos grupos en la base de datos
     for _, row in grupos_df.iterrows():
@@ -41,10 +37,6 @@ async def generate_groups(request: OrgRequest, db: Session = Depends(get_db)):
     # Devuelve los grupos generados en formato de respuesta
     grupos = [{"grupo_id": row['grupo_id'], "usuarios": row['usuarios'], "leader_id": row.get('leader_id')} for _, row in grupos_df.iterrows()]
     return grupos
-
-
-from collections import defaultdict
-
 
 
 
@@ -94,7 +86,7 @@ def get_user_workgroup(
         raise HTTPException(status_code=404, detail="No se encontró el usuario en GitHubUserModel.")
 
     # Buscar el grupo de trabajo en base al id de GitHubUserModel
-    workgroup = db.query(GruposTrabajo).filter(GruposTrabajo.usuario_id == github_user.id).first()
+    workgroup = db.query(GruposTrabajo).filter(GruposTrabajo.usuario_id == github_user.id and GruposTrabajo.organizacion == github_user.organization).first()
     if not workgroup:
         raise HTTPException(status_code=404, detail="No perteneces a ningún grupo de trabajo.")
     
@@ -113,8 +105,12 @@ def get_group_members(
     current_user: GitHubUserModel = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    
+    
+    user2 = db.query(GitHubUserModel).filter(GitHubUserModel.username == current_user.username).first()
+
     # Verificar si el usuario pertenece al grupo
-    user_group = db.query(GruposTrabajo).filter(GruposTrabajo.usuario_id == current_user.id).first()
+    user_group = db.query(GruposTrabajo).filter(GruposTrabajo.usuario_id == user2.id).first()
     if not user_group or user_group.grupo_id != group_id:
         raise HTTPException(status_code=403, detail="No tienes acceso a este grupo.")
     

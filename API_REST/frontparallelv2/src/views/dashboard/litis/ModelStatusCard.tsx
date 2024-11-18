@@ -1,46 +1,63 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Typography, Button, CircularProgress, Box } from '@mui/material';
+import { Card, Typography, Button, CircularProgress, Box, Select, MenuItem, Snackbar, Alert } from '@mui/material';
 
 interface ModelStatus {
   status: string;
   accuracy: string | null;
 }
 
+interface Organization {
+  id: string;
+  name: string;
+}
+
 const ModelStatusCard: React.FC = () => {
   const [modelStatus, setModelStatus] = useState<ModelStatus | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-
-    fetch('http://localhost:8000/adminml/admin/model-status', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => setModelStatus(data))
-      .catch((err) => setError("Error al cargar el estado del modelo."))
-      .finally(() => setLoading(false));
+    fetchOrganizations();
   }, []);
 
+  const fetchOrganizations = () => {
+    setLoading(true);
+    fetch('http://localhost:8000/github/organizations')
+      .then((response) => response.json())
+      .then((data) => setOrganizations(data))
+      .catch((error) => setError('Error al obtener las organizaciones.'))
+      .finally(() => setLoading(false));
+  };
+
   const trainModel = () => {
+    if (!selectedOrg) {
+      setError('Debe seleccionar una organización.');
+      return;
+    }
     const token = localStorage.getItem('token');
+    setLoading(true);
     fetch('http://localhost:8000/adminml/admin/train-model', {
       method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
+      body: JSON.stringify({ organization: selectedOrg }),
     })
       .then((res) => res.json())
-      .then((data) => alert(data.message))
-      .catch((err) => console.error(err));
-  };
-
-  const updatePoints = () => {
-    // Lógica para actualizar puntos
-    alert("Función de actualizar puntos aún no implementada.");
+      .then((data) => {
+        if (data.message) {
+          setSuccessMessage(data.message);
+          // Opcionalmente, puedes actualizar el estado del modelo aquí
+        } else if (data.detail) {
+          setError(data.detail);
+        }
+      })
+      .catch((err) => setError('Error al entrenar el modelo.'))
+      .finally(() => setLoading(false));
   };
 
   return (
@@ -49,35 +66,69 @@ const ModelStatusCard: React.FC = () => {
         Estado del Modelo de Machine Learning
       </Typography>
 
-      {loading ? (
-        <Box display="flex" justifyContent="center" alignItems="center" mt={2}>
-          <CircularProgress />
-        </Box>
-      ) : error ? (
-        <Typography variant="body1" color="error">
-          {error}
-        </Typography>
-      ) : (
-        <>
-          <Typography variant="body1">
-            <strong>Estado:</strong> {modelStatus?.status}
-          </Typography>
-          {modelStatus?.accuracy && (
-            <Typography variant="body1">
-              <strong>Precisión:</strong> {modelStatus.accuracy}
-            </Typography>
-          )}
-        </>
-      )}
+      <Typography variant="body1" gutterBottom>
+        Selecciona una Organización
+      </Typography>
+
+      <Select
+        value={selectedOrg || ''}
+        onChange={(e) => setSelectedOrg(e.target.value)}
+        fullWidth
+        displayEmpty
+        disabled={loading}
+      >
+        <MenuItem value="" disabled>
+          Selecciona una organización
+        </MenuItem>
+        {organizations.map((org) => (
+          <MenuItem key={org.id} value={org.name}>
+            {org.name}
+          </MenuItem>
+        ))}
+      </Select>
+
+      {/* Opcional: Mostrar estado del modelo para la organización seleccionada */}
+      {/* Puedes implementar lógica para obtener y mostrar el estado del modelo */}
 
       <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 2 }}>
-        <Button variant="contained" color="primary" onClick={trainModel} disabled={loading || !!error}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={trainModel}
+          disabled={loading || !selectedOrg}
+        >
           Entrenar Modelo
         </Button>
-        <Button variant="outlined" color="secondary" onClick={updatePoints} disabled={loading}>
+        <Button variant="outlined" color="secondary" onClick={() => {}} disabled={loading}>
           Actualizar Puntos
         </Button>
       </Box>
+
+      {loading && (
+        <Box display="flex" justifyContent="center" alignItems="center" mt={2}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={() => setError(null)}
+      >
+        <Alert onClose={() => setError(null)} severity="error">
+          {error}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={6000}
+        onClose={() => setSuccessMessage(null)}
+      >
+        <Alert onClose={() => setSuccessMessage(null)} severity="success">
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </Card>
   );
 };

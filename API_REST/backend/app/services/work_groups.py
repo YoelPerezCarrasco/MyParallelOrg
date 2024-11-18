@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 from sklearn.preprocessing import StandardScaler
+from sqlalchemy import func
 from joblib import load
 from networkx.algorithms import community
 from sqlalchemy.orm import Session
@@ -19,19 +20,14 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def generar_grupos_de_trabajo(org_name: str) -> pd.DataFrame:
+def generar_grupos_de_trabajo(org_name: str, db: Session) -> pd.DataFrame:
     logger.info(f"Iniciando generación de grupos para la organización: {org_name}")
-    db = None
 
     try:
-        # Crear sesión de base de datos
-        db = SessionLocal()
-        logger.info("Sesión de base de datos creada")
-
         # Cargar el modelo entrenado
         model_dir = '/app/modelos'
-        model_path = os.path.join(model_dir, 'modelo_colaboracion.joblib')
-        scaler_path = os.path.join(model_dir, 'scaler.joblib')
+        model_path = os.path.join(model_dir, f'modelo_colaboracion_{org_name}.joblib')
+        scaler_path = os.path.join(model_dir, f'scaler_{org_name}.joblib')
         modelo = load(model_path)
         scaler = load(scaler_path)
         logger.info("Modelo y escalador cargados con éxito")
@@ -41,10 +37,10 @@ def generar_grupos_de_trabajo(org_name: str) -> pd.DataFrame:
         usuarios = [int(usuario.id) for usuario in usuarios_db]
         logger.info(f"Usuarios obtenidos para la organización: {len(usuarios)} usuarios")
 
-        # Leer las interacciones y características desde simulated_interacciones.csv
-        interacciones_path = os.path.join(model_dir, 'simulated_interacciones.csv')
+        # Leer las interacciones y características desde el archivo específico de la organización
+        interacciones_path = os.path.join(model_dir, f'{org_name}_interacciones.csv')
         interacciones_df = pd.read_csv(interacciones_path)
-        logger.info("Interacciones cargadas desde simulated_interacciones.csv")
+        logger.info("Interacciones cargadas desde el CSV de interacciones")
 
         # Convertir 'user_1' y 'user_2' a enteros nativos
         interacciones_df['user_1'] = interacciones_df['user_1'].astype(int)
@@ -107,19 +103,21 @@ def generar_grupos_de_trabajo(org_name: str) -> pd.DataFrame:
                     group_leaders.append(leader_id)
             logger.info("Grupos formados con tamaño limitado a 15 personas y líderes asignados")
 
-        # Eliminar grupos previos de la misma organización en la base de datos
-        db.query(GruposTrabajo).filter(GruposTrabajo.organizacion == org_name).delete()
-        db.commit()
+        # Obtener el grupo_id máximo actual en la base de datos
+        max_grupo_id = db.query(func.max(GruposTrabajo.grupo_id)).scalar()
+        if max_grupo_id is None:
+            max_grupo_id = 0
+        else:
+            max_grupo_id += 1  # Iniciar desde el siguiente ID disponible
 
+        # Asignar grupo_id únicos a los grupos generados
+        grupos_ids = list(range(max_grupo_id, max_grupo_id + len(grupos_finales)))
 
-        logger.info("Grupos formados y líderes asignados guardados en la base de datos")
-        logger.info(f"Group Leaders: {group_leaders}")
-        logger.info(f"Grupos Finales: {grupos_finales}")
-
+        logger.info("Asignación de IDs únicos a los nuevos grupos")
 
         # Devuelve el DataFrame para uso opcional en otras partes del código
         grupos_df = pd.DataFrame({
-            'grupo_id': range(len(grupos_finales)),
+            'grupo_id': grupos_ids,
             'usuarios': grupos_finales,
             'leader_id': group_leaders
         })
@@ -129,10 +127,6 @@ def generar_grupos_de_trabajo(org_name: str) -> pd.DataFrame:
         logger.error(f"Error al generar grupos de trabajo: {e}", exc_info=True)
         raise
 
-    finally:
-        if db:
-            db.close()
-            logger.info("Sesión de base de datos cerrada")
 
 def asignar_lider(grupo: List[int], G: nx.Graph) -> int:
     total_weights = {}

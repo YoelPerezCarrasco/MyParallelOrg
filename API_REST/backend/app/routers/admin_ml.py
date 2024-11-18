@@ -1,113 +1,113 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-import pandas as pd
-from typing import List
 from app.database.database import get_db
-from app.models.user import GitHubUserModel, UserInteractions
-from app.schemas.user import UserRecommendationResponse
+from app.models.user import UserModel
+from app.services.auth import get_current_user
+from app.machlearn.train_model import entrenar_modelo_colaboracion
+from app.services.dataset import generar_interacciones_y_dataset, generar_interacciones_simuladas
+from app.schemas.user import TrainModelRequest
+import pandas as pd
 import os
-import logging
-from joblib import load
+
+# Ruta del directorio montado donde se encuentra el archivo CSV
+CSV_DIRECTORY = "/app/modelos/"
+
+def cargar_dataset(org_name: str) -> pd.DataFrame:
+    """
+    Cargar el dataset CSV desde el volumen montado en Docker.
+    
+    :param org_name: El nombre de la organización, que se utiliza para identificar el archivo CSV.
+    :return: DataFrame con los datos cargados.
+    """
+    # Definir la ruta completa del archivo
+    csv_path = os.path.join(CSV_DIRECTORY, f"{org_name}_interacciones.csv")
+
+    # Verificar que el archivo existe
+    if not os.path.exists(csv_path):
+        raise FileNotFoundError(f"No se encontró el archivo CSV en la ruta: {csv_path}")
+
+    # Leer el archivo CSV en un DataFrame de pandas
+    try:
+        df = pd.read_csv(csv_path)
+        return df
+    except Exception as e:
+        raise RuntimeError(f"Error al leer el archivo CSV: {e}")
+
+
 
 router = APIRouter()
 
-@router.get('/users/{usernamegt}/recommendations', response_model=List[UserRecommendationResponse])
-async def get_user_recommendations(usernamegt: str, db: Session = Depends(get_db)):
-    # Configurar el logger
-    logger = logging.getLogger(__name__)
+@router.post('/admin/train-model')
+async def train_model(
+    request: TrainModelRequest,
+    db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user)
+):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Access forbidden: Only admins can access this resource.")
 
-    # Verificar que el usuario existe
-    user = db.query(GitHubUserModel).filter_by(username=usernamegt).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
-
-    # Cargar el modelo entrenado y el escalador
-    model_path = os.path.join('/app/modelos', 'modelo_colaboracion.joblib')
-    scaler_path = os.path.join('/app/modelos', 'scaler.joblib')
     try:
-        model = load(model_path)  # Cargar el modelo de sklearn en formato joblib
-        scaler = load(scaler_path)  # Cargar el escalador
-    except FileNotFoundError:
-        raise HTTPException(status_code=500, detail="El modelo o el escalador no están entrenados o no se encuentra el archivo.")
-
-    # Obtener todos los usuarios excepto el actual
-    all_users = db.query(GitHubUserModel).filter(GitHubUserModel.username != usernamegt).all()
-
-    # Obtener todas las interacciones existentes del usuario actual con otros usuarios
-    interactions = db.query(UserInteractions).filter(
-        (UserInteractions.user_1 == user.id) | (UserInteractions.user_2 == user.id)
-    ).all()
-
-    # Crear un diccionario para acceder rápidamente a las interacciones por pares de usuarios
-    interaction_dict = {}
-    for interaction in interactions:
-        other_user_id = interaction.user_2 if interaction.user_1 == user.id else interaction.user_1
-        interaction_dict[other_user_id] = interaction
-
-    recommendations = []
-
-    for other_user in all_users:
-        other_user_id = other_user.id
-
-        # Verificar si ya existe una interacción almacenada
-        interaction = interaction_dict.get(other_user_id, None)
-
-        if interaction:
-            features = {
-                'commits_juntos': interaction.commits_juntos,
-                'contributions_juntas': interaction.contributions_juntas,
-                'pull_requests_comentados': interaction.pull_requests_comentados,
-                'revisiones': interaction.revisiones
-            }
+        # Especifica el nombre de la organización
+        org_name = request.organization
+        accuracy = entrenar_modelo_colaboracion(org_name)
+        if accuracy is not None:
+            return {"message": f"Modelo entrenado con éxito para la organización '{org_name}'. Precisión: {accuracy}"}
         else:
-            # Estimar características para usuarios sin interacciones previas
-            if interactions:
-                avg_commits = sum([i.commits_juntos for i in interactions]) / len(interactions)
-                avg_contributions = sum([i.contributions_juntas for i in interactions]) / len(interactions)
-                avg_pull_requests = sum([i.pull_requests_comentados for i in interactions]) / len(interactions)
-                avg_revisiones = sum([i.revisiones for i in interactions]) / len(interactions)
-            else:
-                avg_commits = db.query(db.func.avg(UserInteractions.commits_juntos)).scalar() or 0
-                avg_contributions = db.query(db.func.avg(UserInteractions.contributions_juntas)).scalar() or 0
-                avg_pull_requests = db.query(db.func.avg(UserInteractions.pull_requests_comentados)).scalar() or 0
-                avg_revisiones = db.query(db.func.avg(UserInteractions.revisiones)).scalar() or 0
+            raise HTTPException(status_code=500, detail="Error al entrenar el modelo. Verifique los logs para más detalles.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al entrenar el modelo: {e}")
 
-            features = {
-                'commits_juntos': avg_commits,
-                'contributions_juntas': avg_contributions,
-                'pull_requests_comentados': avg_pull_requests,
-                'revisiones': avg_revisiones
-            }
+@router.get('/admin/model-status/{organization}')
+async def get_model_status(
+    organization: str,
+    current_user: UserModel = Depends(get_current_user)
+):
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Access forbidden: Only admins can access this resource.")
+    
+    model_dir = '/app/modelos'
+    model_path = os.path.join(model_dir, f'modelo_colaboracion_{organization}.joblib')
+    
+    if os.path.exists(model_path):
+        # Cargar el modelo y calcular la precisión si es necesario
+        # Aquí puedes agregar lógica para obtener métricas del modelo
+        accuracy = "Precisión del modelo"  # Reemplaza con la precisión real si la tienes almacenada
+        return {"status": "Modelo entrenado", "accuracy": accuracy}
+    else:
+        return {"status": "Modelo no entrenado", "accuracy": None}
 
-        # Crear DataFrame para la predicción con los mismos nombres de columnas
-        X_new = pd.DataFrame([features])
 
-        # Aplicar el mismo escalado que se utilizó durante el entrenamiento
-        X_new_scaled = scaler.transform(X_new)
 
-        # Predecir la probabilidad de colaboración con el modelo
-        probabilidad = model.predict_proba(X_new_scaled)[:, 1][0]  # La salida es un valor entre 0 y 1
+@router.get("/generate-dataset/{org_name}")
+async def generate_dataset(org_name: str, db: Session = Depends(get_db)):
+    try:
+        df = generar_interacciones_y_dataset(db, org_name)
+        return df.to_dict(orient="records")  # Convierte el DataFrame a una lista de diccionarios
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/generateSim-dataset/{org_name}")
+async def generate_dataset(org_name: str, db: Session = Depends(get_db)):
+    try:
+        df = generar_interacciones_simuladas(db, org_name)
+        return df.to_dict(orient="records")  # Convierte el DataFrame a una lista de diccionarios
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+    
+@router.get("/describe-dataset/{org_name}")
+async def generate_dataset(org_name: str):
+    try:
+       # Definir la ruta completa del archivo
+        csv_path = os.path.join(CSV_DIRECTORY, f"simulated_interacciones.csv")
 
-        # Agregar a la lista de recomendaciones si la probabilidad es mayor o igual al umbral (0.5)
-        if probabilidad >= 0.5:
-            recommendations.append({
-                'user': other_user,
-                'probabilidad': probabilidad
-            })
+        # Verificar que el archivo existe
+        if not os.path.exists(csv_path):
+            raise FileNotFoundError(f"No se encontró el archivo CSV en la ruta: {csv_path}")
 
-    # Ordenar las recomendaciones por probabilidad en orden descendente
-    recommendations.sort(key=lambda x: x['probabilidad'], reverse=True)
-
-    # Mapear las recomendaciones al formato del esquema de respuesta
-    recommended_users = [
-        UserRecommendationResponse(
-            id=rec['user'].id,
-            username=rec['user'].username,
-            avatar_url=rec['user'].avatar_url,
-            github_url=rec['user'].html_url,
-            probabilidad=rec['probabilidad']
-        )
-        for rec in recommendations
-    ]
-
-    return recommended_users
+        # Leer el archivo CSV en un DataFrame de pandas
+        df = pd.read_csv(csv_path)
+        print(df[['commits_juntos', 'contributions_juntas', 'pull_requests_comentados', 'revisiones']].describe())
+        return df.to_dict(orient="records")  # Convierte el DataFrame a una lista de diccionarios
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

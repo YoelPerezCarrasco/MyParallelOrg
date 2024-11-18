@@ -88,6 +88,9 @@ class UserRepoContributionsSchema(BaseModel):
     model_config = {
         "from_attributes": True
     }
+# Define un modelo Pydantic para recibir el nombre de la organización
+class TrainModelRequest(BaseModel):
+    organization: str
 
 
 class GrupoTrabajo(BaseModel):

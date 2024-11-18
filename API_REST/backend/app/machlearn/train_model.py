@@ -10,17 +10,17 @@ from sklearn.metrics import (classification_report, confusion_matrix, roc_auc_sc
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 
-def entrenar_modelo_colaboracion():
+def entrenar_modelo_colaboracion(org_name: str):
     try:
         logging.basicConfig(level=logging.INFO)
         logger = logging.getLogger(__name__)
         
-        logger.info("Iniciando el entrenamiento del modelo de colaboración")
+        logger.info(f"Iniciando el entrenamiento del modelo de colaboración para la organización: {org_name}")
     
         model_dir = '/app/modelos'
         os.makedirs(model_dir, exist_ok=True)
-    
-        csv_file_path = os.path.join(model_dir, 'simulated_interacciones.csv')
+        
+        csv_file_path = os.path.join(model_dir, f'{org_name}_interacciones.csv')
         logger.info(f"Leyendo el dataset desde '{csv_file_path}'")
         df = pd.read_csv(csv_file_path)
     
@@ -47,15 +47,19 @@ def entrenar_modelo_colaboracion():
         model.fit(X_train_scaled, y_train)
     
         # Guardar X_test_scaled y y_test como archivos de texto
-        np.savetxt(os.path.join(model_dir, 'X_test_scaled.csv'), X_test_scaled, delimiter=',')
-        np.savetxt(os.path.join(model_dir, 'y_test.txt'), y_test, fmt='%d')
+        np.savetxt(os.path.join(model_dir, f'X_test_scaled_{org_name}.csv'), X_test_scaled, delimiter=',')
+        np.savetxt(os.path.join(model_dir, f'y_test_{org_name}.txt'), y_test, fmt='%d')
     
-        model_path = os.path.join(model_dir, 'modelo_colaboracion.joblib')
+        model_path = os.path.join(model_dir, f'modelo_colaboracion_{org_name}.joblib')
         dump(model, model_path)
-        dump(scaler, os.path.join(model_dir, 'scaler.joblib'))
+        dump(scaler, os.path.join(model_dir, f'scaler_{org_name}.joblib'))
         logger.info("Modelo y datos de prueba guardados exitosamente")
     
-        return model.score(X_test_scaled, y_test)
+        # Calcular precisión en el conjunto de prueba
+        accuracy = model.score(X_test_scaled, y_test)
+        logger.info(f"Precisión del modelo para la organización {org_name}: {accuracy}")
+    
+        return accuracy
     
     except Exception as e:
         logger.error(f"Ocurrió un error inesperado: {e}")

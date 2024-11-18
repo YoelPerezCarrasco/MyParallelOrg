@@ -193,7 +193,7 @@ def generar_interacciones_simuladas(db: Session, org_name: str) -> pd.DataFrame:
         df = pd.DataFrame(data)
         
         # Guardar el DataFrame como CSV en el volumen montado
-        output_path = os.path.join(OUTPUT_DIR, f"simulated_interacciones.csv")
+        output_path = os.path.join(OUTPUT_DIR, org_name + "_interacciones.csv")
         df.to_csv(output_path, index=False)
         logger.info(f"Dataset exportado a {output_path}")
 

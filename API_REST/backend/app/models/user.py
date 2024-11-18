@@ -156,3 +156,4 @@ class ProjectModel(Base):
     language = Column(String, nullable=True)
     stargazers_count = Column(Integer, default=0)
     forks_count = Column(Integer, default=0)
+    organization = Column(String, index=True)  # Organización a la que pertenece el proyecto
