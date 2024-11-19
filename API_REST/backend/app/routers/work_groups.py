@@ -1,4 +1,5 @@
 from collections import defaultdict
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 import json
@@ -15,8 +16,14 @@ router = APIRouter()
 async def generate_groups(request: OrgRequest, db: Session = Depends(get_db)):
     """
     Genera grupos de trabajo para una organización específica y los guarda en la base de datos.
+    Elimina todos los registros previos de la misma organización antes de generar los nuevos grupos.
     """
     org = request.org
+
+    # Eliminar registros previos de la misma organización
+    db.query(GruposTrabajo).filter(GruposTrabajo.organizacion == org).delete()
+    db.commit()
+    logging.info(f"Registros previos de la organización '{org}' eliminados.")
 
     # Genera los nuevos grupos de trabajo y obtén el DataFrame
     grupos_df = generar_grupos_de_trabajo(org, db)  # La función devuelve un DataFrame con 'grupo_id' y 'usuarios'
@@ -37,7 +44,6 @@ async def generate_groups(request: OrgRequest, db: Session = Depends(get_db)):
     # Devuelve los grupos generados en formato de respuesta
     grupos = [{"grupo_id": row['grupo_id'], "usuarios": row['usuarios'], "leader_id": row.get('leader_id')} for _, row in grupos_df.iterrows()]
     return grupos
-
 
 
 @router.get("/manager/groups", response_model=List[GrupoTrabajo])
@@ -85,36 +91,50 @@ def get_user_workgroup(
     if not github_user:
         raise HTTPException(status_code=404, detail="No se encontró el usuario en GitHubUserModel.")
 
-    # Buscar el grupo de trabajo en base al id de GitHubUserModel
-    workgroup = db.query(GruposTrabajo).filter(GruposTrabajo.usuario_id == github_user.id and GruposTrabajo.organizacion == github_user.organization).first()
-    if not workgroup:
-        raise HTTPException(status_code=404, detail="No perteneces a ningún grupo de trabajo.")
+    # Buscar el grupo de trabajo al que pertenece el usuario y que coincida con la organización
+    workgroup = db.query(GruposTrabajo).filter(
+        GruposTrabajo.usuario_id == github_user.id,
+        GruposTrabajo.organizacion == github_user.organization
+    ).first()
     
+    if not workgroup:
+        raise HTTPException(status_code=404, detail="No perteneces a ningún grupo de trabajo en tu organización.")
+    
+    # Construir la respuesta
     response = {
         "grupo_id": workgroup.grupo_id,
         "leader_id": workgroup.usuario_id if workgroup.is_leader else None,
-        "project_id": getattr(workgroup, "project_id", None),
-        "is_leader": workgroup.is_leader # Añade 'project_id' si está en el modelo
+        "project_id": getattr(workgroup, "project_id", None),  # Si `project_id` existe en el modelo
+        "is_leader": workgroup.is_leader
     }
     return response
-# routers/workgroups.py
-
 @router.get("/workgroups/group/{group_id}/members")
 def get_group_members(
     group_id: int,
     current_user: GitHubUserModel = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    
-    
-    user2 = db.query(GitHubUserModel).filter(GitHubUserModel.username == current_user.username).first()
+    # Verificar que el usuario existe y pertenece a una organización
+    user = db.query(GitHubUserModel).filter(GitHubUserModel.username == current_user.username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado.")
 
-    # Verificar si el usuario pertenece al grupo
-    user_group = db.query(GruposTrabajo).filter(GruposTrabajo.usuario_id == user2.id).first()
-    if not user_group or user_group.grupo_id != group_id:
-        raise HTTPException(status_code=403, detail="No tienes acceso a este grupo.")
-    
-    members = db.query(GruposTrabajo).filter(GruposTrabajo.grupo_id == group_id).all()
+    # Verificar si el usuario pertenece al grupo dentro de su organización
+    user_group = db.query(GruposTrabajo).filter(
+        GruposTrabajo.usuario_id == user.id,
+        GruposTrabajo.grupo_id == group_id,
+        GruposTrabajo.organizacion == user.organization
+    ).first()
+
+    if not user_group:
+        raise HTTPException(status_code=403, detail="No tienes acceso a este grupo en tu organización.")
+
+    # Obtener miembros del grupo en la misma organización
+    members = db.query(GruposTrabajo).filter(
+        GruposTrabajo.grupo_id == group_id,
+        GruposTrabajo.organizacion == user.organization
+    ).all()
+
     member_details = []
     for member in members:
         user = db.query(GitHubUserModel).filter(GitHubUserModel.id == member.usuario_id).first()
@@ -125,6 +145,7 @@ def get_group_members(
                 "avatar_url": user.avatar_url,
                 "is_leader": member.is_leader
             })
+
     return member_details
 
 
@@ -138,22 +159,25 @@ def get_group_members_details(
     current_user: UserModel = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # Obtener el ID de GitHubUserModel del usuario actual
+    # Verificar que el usuario existe en GitHubUserModel
     github_user = db.query(GitHubUserModel).filter(GitHubUserModel.username == current_user.username).first()
     if not github_user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado en GitHubUserModel.")
 
-    # Verificar si el usuario pertenece al grupo
+    # Verificar si el usuario pertenece al grupo dentro de su organización
     user_group = db.query(GruposTrabajo).filter(
         GruposTrabajo.usuario_id == github_user.id,
-        GruposTrabajo.grupo_id == group_id
+        GruposTrabajo.grupo_id == group_id,
+        GruposTrabajo.organizacion == github_user.organization
     ).first()
-    if not user_group:
-        raise HTTPException(status_code=403, detail="No tienes acceso a este grupo.")
 
-    # Obtener el proyecto asignado al grupo
+    if not user_group:
+        raise HTTPException(status_code=403, detail="No tienes acceso a este grupo en tu organización.")
+
+    # Obtener el proyecto asignado al grupo en la misma organización
     group_project = db.query(GruposTrabajo).filter(
         GruposTrabajo.grupo_id == group_id,
+        GruposTrabajo.organizacion == github_user.organization,
         GruposTrabajo.project_id != None
     ).first()
 
@@ -169,8 +193,12 @@ def get_group_members_details(
 
     repo_name = project.name  # Asumiendo que el nombre del proyecto es el nombre del repositorio
 
-    # Obtener miembros del grupo
-    members = db.query(GruposTrabajo).filter(GruposTrabajo.grupo_id == group_id).all()
+    # Obtener miembros del grupo en la misma organización
+    members = db.query(GruposTrabajo).filter(
+        GruposTrabajo.grupo_id == group_id,
+        GruposTrabajo.organizacion == github_user.organization
+    ).all()
+
     member_details = []
     for member in members:
         user = db.query(GitHubUserModel).filter(GitHubUserModel.id == member.usuario_id).first()
@@ -206,4 +234,5 @@ def get_group_members_details(
                 "reviews": reviews,
                 "isLeader": member.is_leader
             })
+
     return member_details

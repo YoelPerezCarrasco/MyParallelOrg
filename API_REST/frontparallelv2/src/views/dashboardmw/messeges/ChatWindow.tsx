@@ -29,9 +29,10 @@ interface ChatWindowProps {
   messages: ChatMessage[];
   onSendMessage: (messageText: string) => void;
   member: Member;
+  currentUserId: number; // Asegúrate de pasar el ID del usuario actual
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ messages, onSendMessage, member }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ messages, onSendMessage, member, currentUserId }) => {
   const [messageText, setMessageText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -56,21 +57,28 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, onSendMessage, member
         {messages.map((msg) => (
           <li
             key={msg.id}
-            className={`d-flex justify-content-between mb-4 ${
+            className={`d-flex align-items-start mb-4 ${
               msg.isOwnMessage ? 'flex-row-reverse' : ''
             }`}
           >
+            {/* Imagen del usuario */}
             <img
               src={msg.senderAvatar || 'https://via.placeholder.com/60'}
               alt="avatar"
-              className="rounded-circle d-flex align-self-start me-3 shadow-1-strong"
+              className="rounded-circle shadow-1-strong"
               width="60"
+              style={{
+                marginLeft: msg.isOwnMessage ? '15px' : '0',
+                marginRight: msg.isOwnMessage ? '0' : '15px',
+              }}
             />
+  
+            {/* Contenido del mensaje */}
             <MDBCard>
               <MDBCardHeader className="d-flex justify-content-between p-3">
                 <p className="fw-bold mb-0">{msg.senderName}</p>
-                <p className="text-muted small mb-0">
-                  <MDBIcon far icon="clock" /> {new Date(msg.time).toLocaleTimeString()}
+                <p className="text-muted small mb-0 ">
+                  <MDBIcon far icon="clock" /> {msg.time}
                 </p>
               </MDBCardHeader>
               <MDBCardBody>
@@ -81,7 +89,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, onSendMessage, member
         ))}
         <div ref={messagesEndRef} />
       </MDBTypography>
-
+  
       <div className="bg-white mb-3">
         <MDBTextArea
           id="textAreaExample"
@@ -101,6 +109,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, onSendMessage, member
       </MDBBtn>
     </div>
   );
+  
 };
 
 export default ChatWindow;

@@ -23,6 +23,8 @@ class MessageResponse(BaseModel):
     receiver_id: int
     message: str
     timestamp: datetime
+    sender_avatar: Optional[str] = None
+    sender_name: Optional[str] = None
 
     class Config:
         orm_mode = True

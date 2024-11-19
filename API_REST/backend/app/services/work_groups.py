@@ -1,7 +1,7 @@
 
 
 import os
-from typing import List
+from typing import List, Union
 import pandas as pd
 import numpy as np
 import networkx as nx
@@ -117,7 +117,7 @@ def generar_grupos_de_trabajo(org_name: str, db: Session) -> pd.DataFrame:
 
         # Devuelve el DataFrame para uso opcional en otras partes del código
         grupos_df = pd.DataFrame({
-            'grupo_id': grupos_ids,
+            'grupo_id': range(len(grupos_finales)),
             'usuarios': grupos_finales,
             'leader_id': group_leaders
         })
@@ -142,30 +142,51 @@ def asignar_lider(grupo: List[int], G: nx.Graph) -> int:
     logger.info(f"Leader selected: {leader}")
     return leader
 
-
-def get_users_in_group(db: Session, group_id: int) -> List[UserModel]:
+def get_users_in_group(db: Session, group_id: int, user: Union[str, UserModel]) -> List[UserModel]:
     """
     Obtiene los usuarios en un grupo específico desde la base de datos,
-    indicando quién es el líder.
+    vinculando UserModel y GitHubUserModel a través del username.
     """
-    # Consultar los registros en GruposTrabajo para obtener los usuarios en el grupo
+    # Si `user` es un objeto de tipo UserModel, obtenemos su username
+    if isinstance(user, UserModel):
+        username = user.username
+    elif isinstance(user, str):
+        username = user
+    else:
+        raise ValueError("El parámetro 'user' debe ser un string o un objeto de tipo UserModel.")
+
+    # Consultar el usuario en GitHubUserModel
+    github_user = db.query(GitHubUserModel).filter(GitHubUserModel.username == username).first()
+    if not github_user:
+        raise ValueError(f"No se encontró un usuario en GitHubUserModel con el username '{username}'.")
+
+    # Obtener los usuarios en el grupo
     grupo_usuarios = db.query(GruposTrabajo).filter(GruposTrabajo.grupo_id == group_id).all()
-    
     if not grupo_usuarios:
-        raise ValueError(f"No se encontraron usuarios en el grupo con ID {group_id}")
+        raise ValueError(f"No se encontraron usuarios en el grupo con ID {group_id}.")
 
-    # Obtener los IDs de los usuarios y si son líderes
-    users_info = [(gu.usuario_id, gu.is_leader) for gu in grupo_usuarios]
+    # Obtener los usernames de los usuarios GitHub asociados al grupo
+    github_usernames = [
+        db.query(GitHubUserModel.username).filter(GitHubUserModel.id == gu.usuario_id).scalar()
+        for gu in grupo_usuarios
+    ]
 
-    # Consultar los usuarios en la base de datos
-    user_ids = [info[0] for info in users_info]
-    users = db.query(UserModel).filter(UserModel.id.in_(user_ids)).all()
+    # Filtrar usuarios en UserModel cuyo username coincida con los usernames de GitHubUserModel
+    users = db.query(UserModel).filter(UserModel.username.in_(github_usernames)).all()
 
-    # Asociar cada usuario con su estado de líder
+    # Obtener información adicional sobre si son líderes
+    leader_usernames = [
+        db.query(GitHubUserModel.username).filter(GitHubUserModel.id == gu.usuario_id).scalar()
+        for gu in grupo_usuarios if gu.is_leader
+    ]
+
     for user in users:
-        user.is_leader = next((is_leader for uid, is_leader in users_info if uid == user.id), False)
+        user.is_leader = user.username in leader_usernames
 
     return users
+
+
+
 
 def get_user_groups(db: Session, user_id: int) -> List[int]:
     """

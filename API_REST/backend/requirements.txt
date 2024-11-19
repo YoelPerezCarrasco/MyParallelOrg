@@ -20,3 +20,5 @@ joblib
 seaborn
 imblearn
 tensorflow
+celery
+redis

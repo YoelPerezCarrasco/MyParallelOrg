@@ -97,7 +97,6 @@ class UserRepoCommits(Base):
     commit_count = Column(Integer)
     last_commit_date = Column(DateTime)
     user = relationship("GitHubUserModel", back_populates="commits")
-
 class UserModel(Base):
     __tablename__ = "users"
 
@@ -110,6 +109,11 @@ class UserModel(Base):
     rol = Column(String, nullable=False)
     company = Column(String, nullable=False)
 
+    # Relación con GitHubUserModel
+    github_user_id = Column(Integer, ForeignKey("github_users.id"), nullable=True)
+
+    # Relación bidireccional (opcional)
+    github_user = relationship("GitHubUserModel", backref="user")
 
 class LoginItem(BaseModel):
     username: str

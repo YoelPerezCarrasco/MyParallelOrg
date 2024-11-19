@@ -22,27 +22,43 @@ async def get_user_recommendations(usernamegt: str, db: Session = Depends(get_db
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
     # Cargar el modelo entrenado y el escalador
-    model_path = os.path.join('/app/modelos', 'modelo_colaboracion.joblib')
-    scaler_path = os.path.join('/app/modelos', 'scaler.joblib')
+    model_path = os.path.join('/app/modelos', f'modelo_colaboracion_{user.organization}.joblib')
+    scaler_path = os.path.join('/app/modelos', f'scaler_{user.organization}.joblib')
+    interactions_path = os.path.join('/app/modelos', f'{user.organization}_interacciones.csv')
+
     try:
         model = load(model_path)  # Cargar el modelo de sklearn en formato joblib
         scaler = load(scaler_path)  # Cargar el escalador
     except FileNotFoundError:
         raise HTTPException(status_code=500, detail="El modelo o el escalador no están entrenados o no se encuentra el archivo.")
 
-    # Obtener todos los usuarios excepto el actual
-    all_users = db.query(GitHubUserModel).filter(GitHubUserModel.username != usernamegt).all()
+    # Leer las interacciones desde el archivo CSV
+    if not os.path.exists(interactions_path):
+        raise HTTPException(status_code=500, detail=f"No se encontró el archivo de interacciones para la organización {user.organization}.")
+    
+    interactions_df = pd.read_csv(interactions_path)
+    
+    # Validar que el CSV contiene las columnas necesarias
+    required_columns = {'user_1', 'user_2', 'commits_juntos', 'contributions_juntas', 'pull_requests_comentados', 'revisiones'}
+    if not required_columns.issubset(interactions_df.columns):
+        raise HTTPException(status_code=500, detail="El archivo de interacciones no tiene las columnas necesarias.")
 
-    # Obtener todas las interacciones existentes del usuario actual con otros usuarios
-    interactions = db.query(UserInteractions).filter(
-        (UserInteractions.user_1 == user.id) | (UserInteractions.user_2 == user.id)
-    ).all()
+    # Filtrar las interacciones del usuario actual
+    user_interactions = interactions_df[(interactions_df['user_1'] == user.id) | (interactions_df['user_2'] == user.id)]
 
     # Crear un diccionario para acceder rápidamente a las interacciones por pares de usuarios
     interaction_dict = {}
-    for interaction in interactions:
-        other_user_id = interaction.user_2 if interaction.user_1 == user.id else interaction.user_1
-        interaction_dict[other_user_id] = interaction
+    for _, row in user_interactions.iterrows():
+        other_user_id = row['user_2'] if row['user_1'] == user.id else row['user_1']
+        interaction_dict[other_user_id] = {
+            'commits_juntos': row['commits_juntos'],
+            'contributions_juntas': row['contributions_juntas'],
+            'pull_requests_comentados': row['pull_requests_comentados'],
+            'revisiones': row['revisiones']
+        }
+
+    # Obtener todos los usuarios excepto el actual
+    all_users = db.query(GitHubUserModel).filter(GitHubUserModel.username != usernamegt, GitHubUserModel.organization == user.organization).all()
 
     recommendations = []
 
@@ -53,24 +69,19 @@ async def get_user_recommendations(usernamegt: str, db: Session = Depends(get_db
         interaction = interaction_dict.get(other_user_id, None)
 
         if interaction:
-            features = {
-                'commits_juntos': interaction.commits_juntos,
-                'contributions_juntas': interaction.contributions_juntas,
-                'pull_requests_comentados': interaction.pull_requests_comentados,
-                'revisiones': interaction.revisiones
-            }
+            features = interaction
         else:
             # Estimar características para usuarios sin interacciones previas
-            if interactions:
-                avg_commits = sum([i.commits_juntos for i in interactions]) / len(interactions)
-                avg_contributions = sum([i.contributions_juntas for i in interactions]) / len(interactions)
-                avg_pull_requests = sum([i.pull_requests_comentados for i in interactions]) / len(interactions)
-                avg_revisiones = sum([i.revisiones for i in interactions]) / len(interactions)
+            if not user_interactions.empty:
+                avg_commits = user_interactions['commits_juntos'].mean()
+                avg_contributions = user_interactions['contributions_juntas'].mean()
+                avg_pull_requests = user_interactions['pull_requests_comentados'].mean()
+                avg_revisiones = user_interactions['revisiones'].mean()
             else:
-                avg_commits = db.query(db.func.avg(UserInteractions.commits_juntos)).scalar() or 0
-                avg_contributions = db.query(db.func.avg(UserInteractions.contributions_juntas)).scalar() or 0
-                avg_pull_requests = db.query(db.func.avg(UserInteractions.pull_requests_comentados)).scalar() or 0
-                avg_revisiones = db.query(db.func.avg(UserInteractions.revisiones)).scalar() or 0
+                avg_commits = 0
+                avg_contributions = 0
+                avg_pull_requests = 0
+                avg_revisiones = 0
 
             features = {
                 'commits_juntos': avg_commits,

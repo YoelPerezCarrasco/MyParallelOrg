@@ -61,7 +61,7 @@ const OrganizationManagementCard: React.FC = () => {
 
   const handleViewGraph = () => {
     if (selectedOrg) {
-      navigate(`/graphs/${selectedOrg}`);
+      navigate(`/admin/graphs/${selectedOrg}`);
     }
   };
 

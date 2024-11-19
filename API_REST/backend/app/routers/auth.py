@@ -20,6 +20,7 @@ router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 @router.post("/login", response_model=dict)
 async def login(login_item: LoginItem, db: Session = Depends(get_db)):
+    # Autenticar al usuario
     user = authenticate_user(db, login_item.username, login_item.password)
     if not user:
         raise HTTPException(
@@ -27,31 +28,43 @@ async def login(login_item: LoginItem, db: Session = Depends(get_db)):
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-
-    # Obtener el group_id del usuario
-    group_membership = db.query(GruposTrabajo).filter(GruposTrabajo.usuario_id == user.id).first()
-    group_id = group_membership.grupo_id if group_membership else None
+    
+    # Buscar el usuario en GitHubUserModel
+    usermodel = db.query(UserModel).filter(UserModel.username == user.username).first()
+    usergithubquecoincidente = db.query(GitHubUserModel).filter(GitHubUserModel.username == user.username).first()
+    if not usergithubquecoincidente:
+        # Si no existe en GitHubUserModel, asignar None al group_id
+        group_id = None
+    else:
+        # Si existe, obtener el group_id del usuario
+        group_membership = db.query(GruposTrabajo).filter(GruposTrabajo.usuario_id == usergithubquecoincidente.id).first()
+        group_id = group_membership.grupo_id if group_membership else None
 
     # Crear el token de acceso, incluyendo el rol y el group_id del usuario en el token
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRES_MINUTES)
     access_token = create_access_token(
         data={
+            "id": usermodel.id,
             "username": user.username,
             "is_admin": user.is_admin,
             "is_manager": user.is_manager,
-            "group_id": group_id  # Agregar el group_id al token
+            "group_id": group_id,  # Agregar el group_id al token
+            "id_github": usergithubquecoincidente.id if usergithubquecoincidente else None
         },
         expires_delta=access_token_expires
     )
-
+    
     return {
+        "id": usermodel.id,
         "access_token": access_token,
         "token": "bearer",
         "username": user.username,
         "is_admin": user.is_admin,
         "is_manager": user.is_manager,
-        "group_id": group_id  # Devolver el group_id en la respuesta para referencia adicional
+        "group_id": group_id,  # Devolver el group_id en la respuesta para referencia adicional
+        "id_github": usergithubquecoincidente.id if usergithubquecoincidente else None
     }
+
 
 @router.get("/users/me")
 async def read_users_me(db: Session = Depends(get_db), current_user: UserModel = Depends(get_current_user)):
@@ -64,6 +77,7 @@ async def read_users_me(db: Session = Depends(get_db), current_user: UserModel =
         "id": current_user.id,
         "username": current_user.username,
         "id_github": github_user.id,
+        "avatar_url": github_user.avatar_url,
     }
 
 @router.post("/register/", status_code=201)

@@ -1,5 +1,5 @@
 from typing import List
-from app.models.user import GruposTrabajo, UserModel
+from app.models.user import GitHubUserModel, GruposTrabajo, UserModel
 from app.core.config import SECRET_KEY, ALGORITHM
 from app.database.database import get_db
 from app.core.security import verify_password
@@ -51,6 +51,7 @@ def can_send_message(current_user: UserModel, receiver_id: int, db: Session) -> 
     if current_user.id == receiver_id:
         return False  # No puede enviarse mensajes a sí mismo
 
+    # Obtener el receptor por ID
     receiver = db.query(UserModel).filter(UserModel.id == receiver_id).first()
     if not receiver:
         return False
@@ -60,21 +61,26 @@ def can_send_message(current_user: UserModel, receiver_id: int, db: Session) -> 
         return receiver.company == current_user.company
     else:
         # Workers solo pueden enviar mensajes a miembros de su grupo
-        # Asumiendo que tienes una tabla que relaciona usuarios y grupos
-        current_user_groups = get_user_groups(db, current_user.id)
-        receiver_groups = get_user_groups(db, receiver_id)
+        current_user_groups = get_user_groups_by_username(db, current_user.username)
+        receiver_groups = get_user_groups_by_username(db, receiver.username)
         return bool(set(current_user_groups) & set(receiver_groups))
 
-def get_user_groups(db: Session, user_id: int) -> List[int]:
+
+def get_user_groups_by_username(db: Session, username: str) -> List[int]:
     """
-    Obtiene los IDs de los grupos a los que pertenece un usuario.
+    Obtiene los IDs de los grupos a los que pertenece un usuario usando el `username` como base.
     
     :param db: Sesión de la base de datos.
-    :param user_id: ID del usuario.
+    :param username: Username del usuario.
     :return: Lista de IDs de grupos a los que pertenece el usuario.
     """
-    # Consultar la tabla GruposTrabajo para obtener los grupo_id del usuario especificado
-    user_groups = db.query(GruposTrabajo.grupo_id).filter(GruposTrabajo.usuario_id == user_id).all()
-    
+    # Obtener el usuario GitHub asociado al username
+    github_user = db.query(GitHubUserModel).filter(GitHubUserModel.username == username).first()
+    if not github_user:
+        return []
+
+    # Consultar los grupos del usuario en la tabla GruposTrabajo
+    user_groups = db.query(GruposTrabajo.grupo_id).filter(GruposTrabajo.usuario_id == github_user.id).all()
+
     # Extraer los IDs de grupo de los resultados y devolver como lista
     return [group[0] for group in user_groups]

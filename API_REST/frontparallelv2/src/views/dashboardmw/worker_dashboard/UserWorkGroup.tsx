@@ -75,7 +75,10 @@ const UserWorkGroup: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         const dataGroup = await responseGroup.json();
-        if (responseGroup.ok && dataGroup.grupo_id) {
+
+        console.log("Group response:", dataGroup); // Log de respuesta
+
+        if (responseGroup.ok && dataGroup.grupo_id !== undefined && dataGroup.grupo_id !== null) {
           setWorkGroup(dataGroup);
           setIsLeader(dataGroup.is_leader);
 
