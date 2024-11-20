@@ -7,8 +7,8 @@ import OrganizationManagementCard from './litis/OrganizationManagementCard';
 import LoadingModal from './litis/LoadingModal';
 import DatasetCard from './litis/DataSetCard';
 import GroupManagementCard from './litis/GroupManagementCard';
-import Dashboard from '../dashboardmw/Dashboard';
-
+import CelerySchedulerCard from './litis/CelerySchedulerCard';
+import TaskHistoryCard from './litis/TaskHistoryCard';
 // Styled Components
 const ContentBox = styled('div')(({ theme }) => ({
   margin: theme.spacing(4),
@@ -57,6 +57,15 @@ const AdminDashboard: React.FC = () => {
             </SectionTitle>
             <GroupManagementCard />
           </Card>
+
+                {/* Sección de Generación de Dataset */}
+                <Card sx={{ px: 3, py: 2, mb: 3 }}>
+            <SectionTitle>
+              <Title>Programación de Actualizaciones</Title>
+              <SubTitle>Configura la frecuencia de las tareas de actualización</SubTitle>
+            </SectionTitle>
+            <CelerySchedulerCard />
+          </Card>
         </Grid>
 
         {/* Área Lateral */}
@@ -72,11 +81,11 @@ const AdminDashboard: React.FC = () => {
 
          {/* Sección de Configuración de Gamificación */}
          <Card sx={{ px: 3, py: 2, mb: 3 }}>
-            <SectionTitle>
-              <Title>Configuración de Gamificación</Title>
-              <SubTitle>Gestiona los puntos por acciones de usuario</SubTitle>
-            </SectionTitle>
-            <GamificationConfigCard />
+         <SectionTitle>
+            <Title>Historial de Ejecuciones</Title>
+            <SubTitle>Registro de ejecuciones de la tarea programada</SubTitle>
+          </SectionTitle>
+          <TaskHistoryCard taskName="actualizar_trainmodel_diariamente" />
           </Card>
 
 
@@ -104,14 +113,7 @@ const AdminDashboard: React.FC = () => {
 
 
           
-          {/* Sección de Generación de Dataset */}
-          <Card sx={{ px: 3, py: 2, mb: 3 }}>
-            <SectionTitle>
-              <Title>Generador de Dataset</Title>
-              <SubTitle>Genera datasets para entrenamiento</SubTitle>
-            </SectionTitle>
-            <Dashboard />
-            </Card>
+    
 
         </Grid>
 

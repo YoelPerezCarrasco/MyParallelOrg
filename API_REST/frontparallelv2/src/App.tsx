@@ -66,6 +66,7 @@ const AppContent: React.FC = () => {
           <Route path="/login" element={<Loginpage />} />
           <Route path="/register" element={<Registerpage />} />
           <Route path="/" element={<Homepage />} />
+          <Route path="/settings" element={<Setting />} />
           
 
           {/* Rutas protegidas por autenticación */}
@@ -97,7 +98,6 @@ const AdminRoutes: React.FC = () => (
     <Route path="users/list" element={<UserList />} />
     <Route path="users/create" element={<CreateUser />} />
     <Route path="/graphs/:organization" element={<UserGraph />} />
-    <Route path="settings" element={<Setting />} />
 
     {/* Agrega más rutas de administrador aquí */}
   </Routes>
@@ -107,7 +107,6 @@ const ManagerRoutes: React.FC = () => (
   <Routes>
     <Route path="dashboard" element={<ManagerContent />} />
     <Route path="/graphs/:organization" element={<UserGraph />} />
-    <Route path="settings" element={<Setting />} />
     <Route path="analytics" element={<Dashboard />} />
 
     {/* Agrega más rutas de manager aquí */}

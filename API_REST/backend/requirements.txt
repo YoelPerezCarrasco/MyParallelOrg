@@ -22,3 +22,4 @@ imblearn
 tensorflow
 celery
 redis
+celery-redbeat

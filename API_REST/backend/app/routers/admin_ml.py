@@ -1,13 +1,23 @@
+from datetime import timedelta
+import json
+import logging
+from celery.schedules import schedule
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database.database import get_db
-from app.models.user import UserModel
+from app.models.user import UpdateHistory, UserModel
 from app.services.auth import get_current_user
 from app.machlearn.train_model import entrenar_modelo_colaboracion
 from app.services.dataset import generar_interacciones_y_dataset, generar_interacciones_simuladas
-from app.schemas.user import TrainModelRequest
+from app.schemas.user import FrequencyUpdate, TrainModelRequest, UpdateHistoryResponse
+from typing import List
+from app.worker import celery_app
 import pandas as pd
 import os
+from redbeat import RedBeatSchedulerEntry
+from redis import Redis
+
+redis_client = Redis(host="redis", port=6379, decode_responses=True)
 
 # Ruta del directorio montado donde se encuentra el archivo CSV
 CSV_DIRECTORY = "/app/modelos/"
@@ -111,3 +121,112 @@ async def generate_dataset(org_name: str):
         return df.to_dict(orient="records")  # Convierte el DataFrame a una lista de diccionarios
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/get_celery_schedule")
+def get_celery_schedule():
+    schedule = celery_app.conf.beat_schedule.get('redbeat_actualizar_trainmodel_diariamente')
+    if schedule:
+        interval = schedule['schedule']
+        if interval.total_seconds() == 3600:
+            frequency = 'hourly'
+        elif interval.total_seconds() == 86400:
+            frequency = 'daily'
+        elif interval.total_seconds() == 604800:
+            frequency = 'weekly'
+        else:
+            frequency = 'custom'
+        return {"frequency": frequency}
+    else:
+        raise HTTPException(status_code=404, detail="No se encontró la programación actual")
+
+
+
+logger = logging.getLogger(__name__)
+
+@router.post("/update_celery_schedule")
+def update_celery_schedule(
+    data: FrequencyUpdate,
+    current_user: UserModel = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    frequency_map = {
+        'hourly': timedelta(seconds=10),
+        'daily': timedelta(days=1),
+        'weekly': timedelta(weeks=1),
+    }
+    interval = frequency_map.get(data.frequency)
+    if not interval:
+        logger.error("Frecuencia no válida recibida: %s", data.frequency)
+        raise HTTPException(status_code=400, detail="Frecuencia no válida")
+
+    try:
+        # Crear o actualizar la tarea periódica
+        entry = RedBeatSchedulerEntry(
+            name='redbeat_actualizar_trainmodel_diariamente',
+            task='app.tasks.actualizar_trainmodel_diariamente',
+            schedule=schedule(interval.total_seconds()),  # Corregido: Convertimos timedelta a segundos
+            args=[],
+            app=celery_app,
+        )
+        entry.save()
+        logger.info("Tarea programada creada o actualizada exitosamente: %s", entry.name)
+
+        # Registrar el cambio en el historial
+        new_record = UpdateHistory(
+            action='update_frequency',
+            frequency=data.frequency,
+            user=current_user.username,  # Asumiendo que el usuario tiene un atributo 'username'
+        )
+        db.add(new_record)
+        db.commit()
+        logger.info("Historial de actualización registrado exitosamente por el usuario: %s", current_user.username)
+
+        return {"message": "Frecuencia actualizada exitosamente"}
+    except Exception as e:
+        logger.error("Error al programar la tarea: %s", str(e))
+        raise HTTPException(status_code=500, detail="Error al programar la tarea")
+
+@router.get("/update_history", response_model=List[UpdateHistoryResponse])
+def get_update_history(
+    current_user: UserModel = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    history = db.query(UpdateHistory).order_by(UpdateHistory.timestamp.desc()).all()
+    return history
+
+
+
+
+@router.get("/task-history/{task_name}")
+def get_task_history(task_name: str):
+    """
+    Devuelve el historial de ejecuciones de una tarea específica almacenada en RedBeat.
+    """
+    task_key = f"redbeat:{task_name}"
+    history_key = f"{task_key}:history"
+
+    if not redis_client.exists(history_key):
+        return {"message": "No hay historial disponible para esta tarea"}
+
+    history = redis_client.lrange(history_key, 0, -1)  # Obtener todo el historial
+    return {"task_name": task_name, "history": [json.loads(item) for item in history]}
+
+@router.delete("/clear-task-history/{task_name}")
+async def clear_task_history(task_name: str):
+    """
+    Elimina el historial de una tarea específica almacenada en Redis.
+    """
+    try:
+        # Clave en Redis donde se guarda el historial
+        history_key = f"task-history:{task_name}"
+
+        # Verificar si el historial existe
+        if not redis_client.exists(history_key):
+            raise HTTPException(status_code=404, detail=f"No se encontró historial para la tarea: {task_name}")
+
+        # Eliminar el historial
+        redis_client.delete(history_key)
+
+        return {"message": f"Historial de {task_name} eliminado con éxito."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al eliminar el historial: {str(e)}")

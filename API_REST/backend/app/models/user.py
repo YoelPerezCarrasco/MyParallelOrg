@@ -80,6 +80,7 @@ class GitHubUserModel(Base):
     organization = Column(String, index=True)
     puntos = Column(Integer, default=0)  # Añadimos este campo
 
+
 class UserRepoContributions(Base):
     __tablename__ = 'user_repo_contributions'
     
@@ -103,11 +104,13 @@ class UserModel(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    is_active = Column(Boolean, default=True)
+    email = Column(String, unique=True, index=True)
+    is_active = Column(Boolean, default=False)  # Cambiar a False por defecto
     is_admin = Column(Boolean, default=True)
     is_manager = Column(Boolean, default=True)
     rol = Column(String, nullable=False)
     company = Column(String, nullable=False)
+    confirmation_token = Column(String, nullable=True)  # Token para confirmar el correo electrónico
 
     # Relación con GitHubUserModel
     github_user_id = Column(Integer, ForeignKey("github_users.id"), nullable=True)
@@ -161,3 +164,17 @@ class ProjectModel(Base):
     stargazers_count = Column(Integer, default=0)
     forks_count = Column(Integer, default=0)
     organization = Column(String, index=True)  # Organización a la que pertenece el proyecto
+
+
+
+class UpdateHistory(Base):
+    __tablename__ = 'update_history'
+
+    id = Column(Integer, primary_key=True, index=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    action = Column(String, nullable=False)
+    frequency = Column(String, nullable=True)
+    user = Column(String, nullable=True)  # Para registrar quién hizo el cambio
+
+    def __repr__(self):
+        return f"<UpdateHistory(id={self.id}, action='{self.action}', frequency='{self.frequency}', timestamp='{self.timestamp}')>"

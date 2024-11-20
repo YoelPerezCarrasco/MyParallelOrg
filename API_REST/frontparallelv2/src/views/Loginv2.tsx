@@ -1,40 +1,9 @@
-import React, { useContext, useEffect, FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useContext, FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
-import { parseJwt } from '../utils/jwtDecode';
 
-const Loginpage: React.FC = () => {
-  const { loginUser, isAuthenticated } = useContext(AuthContext)!;
-  const navigate = useNavigate();
-
-// Supongamos que authTokens es el token JWT almacenado
-const token = localStorage.getItem('authTokens');
-
-let username: string | null = null;
-let is_admin: boolean | null = null;
-let is_manager: boolean | null = null;
-
-if (token) {
-  const decoded = parseJwt(token); // Asegúrate de tener una función parseJwt para decodificar el token JWT
-  if (decoded) {
-    username = decoded.username;
-    is_admin = decoded.is_admin;
-    is_manager = decoded.is_manager;
-  }
-}
-  useEffect(() => {
-    if (isAuthenticated) { // Asegúrate de que isAuthenticated esté definido
-      if (is_admin) {
-        navigate('/admin/dashboard');
-      } else if (is_manager) {
-        navigate('/manager/dashboard');
-      } else {
-        navigate('/user/dashboard'); // Para usuarios comunes
-      }
-    }
-  }, [isAuthenticated, navigate]);
-
-  
+const LoginPage: React.FC = () => {
+  const { loginUser } = useContext(AuthContext)!;
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -46,7 +15,6 @@ if (token) {
       loginUser(username, password);
     }
   };
-
   return (
     <div>
       <section className="vh-100" style={{ backgroundColor: "gray" }}>
@@ -125,4 +93,4 @@ if (token) {
   );
 };
 
-export default Loginpage;
+export default LoginPage;

@@ -4,7 +4,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-SQLALCHEMY_DATABASE_URL = os.getenv('DATABASE_URL')
+SQLALCHEMY_DATABASE_URL = os.getenv('SQLALCHEMY_DATABASE_URL')
+
+
+if not SQLALCHEMY_DATABASE_URL:
+    raise ValueError("La variable de entorno SQLALCHEMY_DATABASE_URL no está configurada.")
 
 if os.getenv('SPHINX_BUILD') == 'true':
     engine = None  # O cualquier otra cosa que no inicie la conexión real

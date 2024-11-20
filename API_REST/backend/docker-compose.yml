@@ -15,21 +15,7 @@ services:
     env_file:
       - .env
 
-  celery_worker:
-    build: .
-    command: celery -A app.worker worker --loglevel=info -B
-    volumes:
-      - .:/app
-    depends_on:
-      - redis
-      - db
-
-  redis:
-    image: redis:6-alpine
-    ports:
-      - "6379:6379"
-
-
+  
   db:
     image: postgres:latest
     environment:
@@ -38,6 +24,25 @@ services:
       POSTGRES_PASSWORD: password
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+
+  celery_worker:
+    build: .
+    command: celery -A app.worker worker --loglevel=info -B
+    volumes:
+      - .:/app
+      - modelos:/app/modelos
+    depends_on:
+      - redis
+      - db
+    environment:
+      SQLALCHEMY_DATABASE_URL: postgresql://user:password@db:5432/mydatabase
+
+  redis:
+    image: redis:6-alpine
+    ports:
+      - "6379:6379"
+
 
   pgadmin:
     image: dpage/pgadmin4

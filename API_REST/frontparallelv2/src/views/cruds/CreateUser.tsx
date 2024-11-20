@@ -5,6 +5,7 @@ const CreateUser: React.FC = () => {
   const [rol, setRol] = useState<string>('');
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [email, setEmail] = useState<string>(''); // Nuevo campo
   const [companyname, setCompanyName] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
@@ -13,10 +14,10 @@ const CreateUser: React.FC = () => {
   const handleCreateUser = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await registerUser(rol, username, password, companyname);
+      await registerUser(rol, email, username, password, companyname); // Incluye email
       setError(null);
     } catch (err) {
-      setError('Failed to create user');
+      setError(err instanceof Error ? err.message : 'Failed to create user');
     }
   };
 
@@ -30,9 +31,21 @@ const CreateUser: React.FC = () => {
             type="text"
             id="username"
             className="form-control"
-            placeholder="Introducte usuario"
+            placeholder="Introduce usuario"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+        </div>
+        <div className="mb-3">
+          <label htmlFor="email" className="form-label">Correo Electrónico</label>
+          <input
+            type="email"
+            id="email"
+            className="form-control"
+            placeholder="Introduce correo electrónico"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
         </div>
@@ -69,7 +82,7 @@ const CreateUser: React.FC = () => {
             onChange={(e) => setRol(e.target.value)}
             required
           >
-            <option value="">Seleciona rol</option>
+            <option value="">Selecciona rol</option>
             <option value="manager">Manager</option>
             <option value="worker">Worker</option>
           </select>

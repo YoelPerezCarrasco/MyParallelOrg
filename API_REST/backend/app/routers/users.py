@@ -1,7 +1,7 @@
 # crud/user.py
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from app.models.user import UserInteractions, UserModel, GitHubUserModel
+from app.models.user import GruposTrabajo, UserInteractions, UserModel, GitHubUserModel
 from app.schemas.user import GitHubUserDetails, UserCreate, UserResponse
 from app.core.security import get_password_hash
 from app.services.auth import get_current_user
@@ -121,39 +121,64 @@ async def delete_user_endpoint(user_id: int, db: Session = Depends(get_db), curr
 
 @router.get("/user-connections/{org_name}")
 async def get_user_connections(org_name: str, db: Session = Depends(get_db)):
-    # Verificar si la organización existe en la base de datos
-    if not db.query(GitHubUserModel).filter_by(organization=org_name).first():
-        raise HTTPException(status_code=404, detail="Organization not found")
+    # Verificar si hay usuarios en la organización
+    users_in_org = db.query(GitHubUserModel).filter_by(organization=org_name).all()
+    if not users_in_org:
+        raise HTTPException(status_code=404, detail="No users found in the organization")
+    
+    # Obtener grupos formados en la organización
+    groups = db.query(GruposTrabajo).filter_by(organizacion=org_name).all()
+    if not groups:
+        raise HTTPException(status_code=404, detail="No groups found in the organization")
+    
+    # Crear un diccionario de usuarios para acceso rápido por ID
+    users_dict = {user.id: user for user in users_in_org}
 
-    # Construir el grafo para la organización específica
-    G = build_user_graph(db, org_name)
-    
-    # Convertir el grafo a un formato JSON compatible con el frontend
-    data = json_graph.node_link_data(G)
-    
+    # Crear nodos (solo usuarios que están en grupos)
+    user_ids_in_groups = {group.usuario_id for group in groups if group.usuario_id}
     nodes = []
-    for node in data['nodes']:
-        node_id = node["id"]
-        avatar_url = node.get("avatar_url", "")
-        github_url = f"https://github.com/{node_id}"
-        nodes.append({
-            "id": node_id,
-            "label": node_id,
-            "icon": avatar_url,
-            "github_url": github_url
-        })
+    for user_id in user_ids_in_groups:
+        user = users_dict.get(user_id)
+        if user:
+            nodes.append({
+                "id": str(user.id),
+                "label": user.username,
+                "icon": user.avatar_url or "",
+                "github_url": f"https://github.com/{user.username}"
+            })
 
+    # Crear aristas (relaciones entre usuarios en los mismos grupos)
     edges = []
-    for link in data['links']:
-        edge_id = f"{link['source']}-{link['target']}"
-        edges.append({
-            "id": edge_id,
-            "source": link["source"],  
-            "target": link["target"],  
-            "label": link.get("label", "")  
-        })
+    valid_node_ids = {node["id"] for node in nodes}  # IDs válidos basados en nodos existentes
+    processed_pairs = set()  # Para evitar duplicados
+    for group in groups:
+        group_id = group.grupo_id
+        # Obtener todos los miembros del grupo
+        members = [g.usuario_id for g in groups if g.grupo_id == group_id and g.usuario_id]
+        # Convertir IDs de miembros a strings para coincidir con IDs de nodos
+        member_ids = [str(member_id) for member_id in members if str(member_id) in valid_node_ids]
+        # Crear aristas entre cada par de miembros
+        for i in range(len(member_ids)):
+            for j in range(i + 1, len(member_ids)):
+                source = member_ids[i]
+                target = member_ids[j]
+                # Evitar aristas duplicadas
+                pair = tuple(sorted([source, target]))
+                if pair not in processed_pairs:
+                    processed_pairs.add(pair)
+                    edge_id = f"{source}-{target}"
+                    edges.append({
+                        "id": edge_id,
+                        "source": source,
+                        "target": target,
+                        "label": f"Group {group_id}"
+                    })
 
-    return {"nodes": nodes, "edges": edges}
+    # Devolver datos en el formato solicitado
+    return {
+        "nodes": nodes,
+        "edges": edges
+    }
 
 @router.get("/user/connections")
 async def get_user_connections_current(current_user: UserModel = Depends(get_current_user), db: Session = Depends(get_db)):

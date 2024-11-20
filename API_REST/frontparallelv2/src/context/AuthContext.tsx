@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { parseJwt } from "../utils/jwtDecode";
+import { Email } from "@mui/icons-material";
 
 const swal = require('sweetalert2');
 
@@ -9,7 +10,13 @@ interface AuthContextType {
   setUser: React.Dispatch<React.SetStateAction<any>>;
   authTokens: any;
   setAuthTokens: React.Dispatch<React.SetStateAction<any>>;
-  registerUser: (rol: string, username: string, password: string, companyName: string) => Promise<void>;
+  registerUser: (
+    rol: string,
+    email: string,  // Añadir el parámetro email
+    username: string,
+    password: string,
+    companyName: string
+  ) => Promise<void>;
   loginUser: (username: string, password: string) => Promise<void>;
   logoutUser: () => void;
   isAuthenticated: boolean;  // Agregado aquí
@@ -104,17 +111,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log("Logged In", data);
   
       setAuthTokens(data);
-      setUser(data.user); // Asumiendo que la API devuelve detalles del usuario en la respuesta
+      setUser(data.user);
       localStorage.setItem("authTokens", JSON.stringify(data));
       localStorage.setItem('token', data.access_token);
   
-      // Verificar si el usuario es administrador o no
+      // Navegación basada en el rol
       if (data.is_admin) {
         navigate("/admin/dashboard");
-      } else if(data.is_manager){
+      } else if (data.is_manager) {
         navigate("/manager/dashboard");
       } else {
-        navigate("/user/dashboard")
+        navigate("/user/dashboard");
       }
   
       swal.fire({
@@ -126,10 +133,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         timerProgressBar: true,
         showConfirmButton: false,
       });
+    } else if (response.status === 403) {
+      // Manejar cuenta no verificada
+      swal.fire({
+        title: "Cuenta no verificada. Por favor, revisa tu correo electrónico.",
+        icon: "warning",
+        toast: true,
+        timer: 6000,
+        position: 'top-right',
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
     } else {
-      console.log(response.status);
-      console.log("Error de server");
-  
+      // Manejar otros errores
       swal.fire({
         title: "Usuario o contraseña incorrectos",
         icon: "error",
@@ -141,26 +157,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
     }
   };
+  
 
-  const registerUser = async (rol: string, username: string, password: string, company: string) => {
+  const registerUser = async (
+    rol: string,
+    email: string,  // Cambiar el tipo a string
+    username: string,
+    password: string,
+    company: string
+  ) => {
     console.log("Datos enviados:", {
-        rol: rol,
-        username: username,
-        password: password,
-        company: company
+      rol: rol,
+      email: email,  // Usar la variable email correcta
+      username: username,
+      password: password,
+      company: company,
     });
-
+  
     const response = await fetch("http://localhost:8000/auth/register/", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         rol: rol,
+        email: email,  // Incluir email en el cuerpo de la solicitud
         username: username,
         password: password,
-        company: company
-      })
+        company: company,
+      }),
     });
 
     console.log("Estado de la respuesta:", response.status);

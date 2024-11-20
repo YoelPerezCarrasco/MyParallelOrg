@@ -1,7 +1,7 @@
 // ManagerDashboard.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Typography, CircularProgress, Box, Paper, Divider, Grid, Breadcrumbs, Link } from '@mui/material';
+import { Container, Typography, CircularProgress, Box, Paper, Divider, Grid, Breadcrumbs, Link, Button } from '@mui/material';
 import GroupPanel from './groups/GroupPanel';
 import SearchBar from './SearchBar';
 import OpenProjects from './OpenProjects';
@@ -36,6 +36,12 @@ const ManagerDashboard: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [expandedGroup, setExpandedGroup] = useState<number | false>(false);
     const navigate = useNavigate();
+
+    const handleViewGraph = () => {
+        if (userOrganization) {
+            navigate(`/manager/graphs/${userOrganization}`);
+        }
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -122,6 +128,16 @@ const ManagerDashboard: React.FC = () => {
                         Organización: <strong>{userOrganization}</strong>
                     </Typography>
                 </Paper>   
+
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleViewGraph}
+                    sx={{ marginBottom: 2 }}
+                >
+                    Ver Gráfico de Organización
+                </Button>
+           
                 <Box display="flex" justifyContent="left" alignItems="center" sx={{ marginBottom: 2 }}>
                     <InfoOutlinedIcon color="primary" sx={{ marginRight: 5 }} />
                     <Typography variant="body1" align="justify" color="textSecondary" sx={{ maxWidth: '100%' }}>

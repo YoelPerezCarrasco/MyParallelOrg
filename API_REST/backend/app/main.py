@@ -22,8 +22,6 @@ def actualizar_puntos():
     actualizar_puntos_usuarios(db)
     db.close()
 
-scheduler.add_job(func=actualizar_puntos, trigger="interval", hours=24)  # Se ejecuta cada 24 horas
-scheduler.start()
 
 # Configuración de CORS
 app.add_middleware(

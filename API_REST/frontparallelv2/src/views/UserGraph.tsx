@@ -23,6 +23,18 @@ const UserGraph: React.FC = () => {
   const [showHelp, setShowHelp] = useState(false); // Estado para controlar el pop-up de ayuda
   const graphRef = useRef<GraphCanvasRef | null>(null);
 
+  useEffect(() => {
+    // Verificar que todas las aristas hacen referencia a nodos existentes
+    const nodeIds = new Set(nodes.map(node => node.id));
+    for (const edge of edges) {
+      if (!nodeIds.has(edge.source)) {
+        console.error(`La arista con id ${edge.id} tiene un source inválido: ${edge.source}`);
+      }
+      if (!nodeIds.has(edge.target)) {
+        console.error(`La arista con id ${edge.id} tiene un target inválido: ${edge.target}`);
+      }
+    }
+  }, [nodes, edges]);
   
 
   useEffect(() => {

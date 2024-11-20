@@ -1,4 +1,3 @@
-// layout1TopBar.tsx
 import React, { memo, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -84,12 +83,14 @@ const Layout1Topbar: React.FC<Layout1TopbarProps> = ({ isChatOpen, setIsChatOpen
   let isAuthenticated = false;
   
   let username: string | null = null;
+  let isWorker: boolean = false;
 
   if (token) {
     const decoded = parseJwt(token);
     if (decoded) {
       username = decoded.username;
       isAuthenticated = true;
+      isWorker = !decoded.is_admin && !decoded.is_manager; // El usuario es "worker" si no es admin ni manager
     }
   }
 
@@ -105,10 +106,12 @@ const Layout1Topbar: React.FC<Layout1TopbarProps> = ({ isChatOpen, setIsChatOpen
         <Box display="flex" alignItems="center">
           {isAuthenticated && (
             <>
-              {/* Botón de chat */}
-              <StyledIconButton onClick={() => setIsChatOpen(!isChatOpen)}>
-                <ChatIcon />
-              </StyledIconButton>
+              {/* Botón de chat: Solo visible para workers */}
+              {isWorker && (
+                <StyledIconButton onClick={() => setIsChatOpen(!isChatOpen)}>
+                  <ChatIcon />
+                </StyledIconButton>
+              )}
 
               {/* Menú de usuario */}
               <UserMenuBox onClick={handleUserMenuClick}>
@@ -135,14 +138,6 @@ const Layout1Topbar: React.FC<Layout1TopbarProps> = ({ isChatOpen, setIsChatOpen
             </MenuItem>
             {/* Otros ítems del menú */}
             {/* ... */}
-            {/* Opción de Chat en el menú (opcional) */}
-            <MenuItem onClick={() => {
-                handleUserMenuClose();
-                setIsChatOpen(!isChatOpen);
-              }} sx={{ fontFamily: 'Poppins' }}>
-              <ChatIcon sx={{ marginRight: 1 }} />
-              <span>Chat</span>
-            </MenuItem>
             <MenuItem
               onClick={() => {
                 logoutUser();
@@ -156,7 +151,7 @@ const Layout1Topbar: React.FC<Layout1TopbarProps> = ({ isChatOpen, setIsChatOpen
           </Menu>
         </Box>
       </TopbarContainer>
-    </TopbarRoot>
+      </TopbarRoot>
   );
 };
 

@@ -7,6 +7,7 @@ class UserCreate(BaseModel):
     username: str
     password: Optional[str] = Field(None, description="Password can be empty when not updating")
     company: str
+    email: str
 
      
     model_config = {
@@ -73,6 +74,7 @@ class UserRecommendationResponse(BaseModel):
 class UserResponse(BaseModel):
     id: int
     rol: str
+    email: str
     username: str
     company: str
 
@@ -165,6 +167,19 @@ class ProjectSchema(BaseModel):
     language: Optional[str]
     stargazers_count: int
     forks_count: int
+
+    class Config:
+        orm_mode = True
+
+class FrequencyUpdate(BaseModel):
+    frequency: str  # Valores posibles: 'hourly', 'daily', 'weekly'
+
+class UpdateHistoryResponse(BaseModel):
+    id: int
+    timestamp: datetime
+    action: str
+    frequency: Optional[str]
+    user: Optional[str]
 
     class Config:
         orm_mode = True

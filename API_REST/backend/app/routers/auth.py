@@ -4,7 +4,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from app.database.database import get_db
-from app.services.auth import authenticate_user, get_current_user
+from app.services.auth import authenticate_user, get_current_user, send_confirmation_email
 from app.core.security import create_access_token, get_password_hash
 from app.schemas.user import UserCreate, ChangePasswordRequest, LoginItem, GitHubUserDetails
 from app.models.user import GruposTrabajo, UserModel, GitHubUserModel, UserInteractions
@@ -28,6 +28,12 @@ async def login(login_item: LoginItem, db: Session = Depends(get_db)):
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Account not active. Please confirm your email."
+        )
     
     # Buscar el usuario en GitHubUserModel
     usermodel = db.query(UserModel).filter(UserModel.username == user.username).first()
@@ -49,7 +55,9 @@ async def login(login_item: LoginItem, db: Session = Depends(get_db)):
             "is_admin": user.is_admin,
             "is_manager": user.is_manager,
             "group_id": group_id,  # Agregar el group_id al token
-            "id_github": usergithubquecoincidente.id if usergithubquecoincidente else None
+            "id_github": usergithubquecoincidente.id if usergithubquecoincidente else None,
+            "org_name": usergithubquecoincidente.organization if usergithubquecoincidente else None
+
         },
         expires_delta=access_token_expires
     )
@@ -62,7 +70,8 @@ async def login(login_item: LoginItem, db: Session = Depends(get_db)):
         "is_admin": user.is_admin,
         "is_manager": user.is_manager,
         "group_id": group_id,  # Devolver el group_id en la respuesta para referencia adicional
-        "id_github": usergithubquecoincidente.id if usergithubquecoincidente else None
+        "id_github": usergithubquecoincidente.id if usergithubquecoincidente else None,
+        "org_name": usergithubquecoincidente.organization if usergithubquecoincidente else None
     }
 
 
@@ -80,6 +89,8 @@ async def read_users_me(db: Session = Depends(get_db), current_user: UserModel =
         "avatar_url": github_user.avatar_url,
     }
 
+from uuid import uuid4
+
 @router.post("/register/", status_code=201)
 async def register_user(user: UserCreate, db: Session = Depends(get_db)):
     # Verificar si el usuario ya existe
@@ -87,24 +98,67 @@ async def register_user(user: UserCreate, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=400, detail="Username already registered")
 
+    # Generar un token de confirmación
+    confirmation_token = str(uuid4())
+
     # Crear el nuevo usuario
     new_user = UserModel(
         username=user.username,
-        hashed_password=get_password_hash(user.password),  # Encripta la contraseña
-        is_active=True,
-        is_admin=False,  # Asegurando que no todos los usuarios sean admins por defecto
-        is_manager=True if user.rol == "manager" else False,  # Asigna is_manager basado en el rol
-        rol=user.rol,  # Asigna el rol basado en la solicitud
-        company=user.company  # Asigna la empresa al usuario
+        hashed_password=get_password_hash(user.password),
+        email=user.email,
+        is_active=False,  # La cuenta no está activa hasta que confirme el correo
+        is_admin=False,
+        is_manager=True if user.rol == "manager" else False,
+        rol=user.rol,
+        company=user.company,
+        confirmation_token=confirmation_token,
     )
 
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+
+    # Enviar correo de confirmación
+    send_confirmation_email(user.email, confirmation_token)
     
-    return {"message": "User created successfully", "username": new_user.username, "rol": new_user.rol, "company": new_user.company}
+    return {"message": "User created successfully. Please confirm your email to activate the account."}
+
+from fastapi.responses import RedirectResponse
 
 
+@router.get("/auth/confirm/{token}")
+async def confirm_email(token: str, db: Session = Depends(get_db)):
+    try:
+        # Verifica el token JWT
+
+        # Busca al usuario en la base de datos
+        user = db.query(UserModel).filter(UserModel.confirmation_token == token).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+        # Actualiza el estado del usuario a activo
+        user.is_active = True
+        db.commit()
+
+        # Redirige al inicio de sesión
+        return RedirectResponse(url="http://localhost:3000/login")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Error al confirmar el correo: " + str(e))
+
+@router.post("/change-password")
+async def change_password(request: ChangePasswordRequest, db: Session = Depends(get_db)):
+    # Buscar al usuario por nombre de usuario
+    user = db.query(UserModel).filter(UserModel.username == request.username).first()
+
+    # Verificar la contraseña actual
+    if not user or not pwd_context.verify(request.current_password, user.hashed_password):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect current password")
+
+    # Cambiar la contraseña
+    user.hashed_password = pwd_context.hash(request.new_password)
+    db.commit()
+
+    return {"message": "Password changed successfully"}
 
 @router.get("/manager/users/details", response_model=List[GitHubUserDetails])
 def get_users_details(user_ids: List[int], db: Session = Depends(get_db)):
