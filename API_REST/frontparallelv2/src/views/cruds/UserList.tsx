@@ -20,7 +20,7 @@ const UserList: React.FC = () => {
     const fetchUsers = async () => {
       const token = localStorage.getItem('token');
 
-      const response = await fetch('http://localhost:8000/users/users', {
+      const response = await fetch('http://api/users/users', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,  // Incluye el token de autenticación
@@ -51,7 +51,7 @@ const UserList: React.FC = () => {
 
     const token = localStorage.getItem('token');
 
-    const response = await fetch(`http://localhost:8000/users/users/${id}`, {
+    const response = await fetch(`http://api/users/users/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,  // Incluye el token de autenticación
@@ -69,7 +69,7 @@ const UserList: React.FC = () => {
     const token = localStorage.getItem('token');
 
     if (editUser) {
-      const response = await fetch(`http://localhost:8000/users/users/${editUser.id}`, {
+      const response = await fetch(`http://api/users/users/${editUser.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

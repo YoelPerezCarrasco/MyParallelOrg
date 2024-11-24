@@ -23,7 +23,7 @@ const GroupManagementCard: React.FC = () => {
 
   const fetchCompanies = () => {
     setLoading(true);
-    fetch('http://localhost:8000/github/organizations')
+    fetch('http://api/github/organizations')
       .then((response) => response.json())
       .then((data) => setOrganizations(data))
       .catch((error) => setError('Error al obtener las organizaciones.'))
@@ -38,7 +38,7 @@ const GroupManagementCard: React.FC = () => {
 
     setLoading(true);
     setShowLoadingModal(true);
-    fetch(`http://localhost:8000/workgroups/manager/groups/generate`, {
+    fetch(`http://api/workgroups/manager/groups/generate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

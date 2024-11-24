@@ -18,7 +18,7 @@ const AffinityTable: React.FC = () => {
 
   const fetchRecommendations = async (username: string, token: string) => {
     try {
-      const response = await fetch(`http://localhost:8000/prediction/users/${username}/recommendations`, {
+      const response = await fetch(`http://api/prediction/users/${username}/recommendations`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -52,7 +52,7 @@ const AffinityTable: React.FC = () => {
 
     const fetchUser = async () => {
       try {
-        const response = await fetch('http://localhost:8000/auth/users/me', {
+        const response = await fetch('http://api/auth/users/me', {
           headers: {
             Authorization: `Bearer ${token}`,
           },

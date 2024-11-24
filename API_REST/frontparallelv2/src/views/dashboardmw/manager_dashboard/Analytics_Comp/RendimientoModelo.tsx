@@ -15,7 +15,7 @@ const RendimientoModelo: React.FC = () => {
   const [data, setData] = useState<ModeloData | null>(null);
 
   useEffect(() => {
-    fetch('http://localhost:8000/stadistics/api/modelo/rendimiento')
+    fetch('http://api/stadistics/api/modelo/rendimiento')
       .then(response => response.json())
       .then(data => setData(data))
       .catch(error => console.error('Error fetching model data:', error));

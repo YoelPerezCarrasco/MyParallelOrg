@@ -16,7 +16,7 @@ const EstadisticasRepositorios: React.FC = () => {
   const [data, setData] = useState<RepositorioData | null>(null);
 
   useEffect(() => {
-    fetch('http://localhost:8000/stadistics/api/estadisticas/repositorios')
+    fetch('http://api/stadistics/api/estadisticas/repositorios')
       .then(response => response.json())
       .then(data => setData(data))
       .catch(error => console.error('Error fetching repository data:', error));

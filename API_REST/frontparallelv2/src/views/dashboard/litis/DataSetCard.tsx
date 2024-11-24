@@ -43,7 +43,7 @@ const DatasetCard: React.FC = () => {
     const token = localStorage.getItem('token');
 
     try {
-      const response = await fetch('http://localhost:8000/github/organizations', {
+      const response = await fetch('http://api/github/organizations', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -74,7 +74,7 @@ const DatasetCard: React.FC = () => {
     const token = localStorage.getItem('token');
 
     try {
-      const response = await fetch(`http://localhost:8000/adminml/generateSim-dataset/${selectedOrg}`, {
+      const response = await fetch(`http://api/adminml/generateSim-dataset/${selectedOrg}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

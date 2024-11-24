@@ -12,7 +12,7 @@ const ComparativasGrupos: React.FC = () => {
   const [data, setData] = useState<ComparativaData | null>(null);
 
   useEffect(() => {
-    fetch('http://localhost:8000/stadistics/api/estadisticas/comparativas')
+    fetch('http://api/stadistics/api/estadisticas/comparativas')
       .then(response => response.json())
       .then(data => setData(data))
       .catch(error => console.error('Error fetching comparison data:', error));

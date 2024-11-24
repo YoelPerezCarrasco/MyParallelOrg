@@ -24,7 +24,7 @@ const TaskHistoryCard: React.FC<{ taskName: string }> = ({ taskName }) => {
   useEffect(() => {
     const fetchTaskHistory = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/adminml/task-history/${taskName}`);
+        const response = await fetch(`http://api/adminml/task-history/${taskName}`);
         if (response.ok) {
           const data = await response.json();
           setHistory(data.history || []); // Asegúrate de que data.history sea un arreglo
@@ -43,7 +43,7 @@ const TaskHistoryCard: React.FC<{ taskName: string }> = ({ taskName }) => {
 
   const clearHistory = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/adminml/clear-task-history/${taskName}`, {
+      const response = await fetch(`http://api/adminml/clear-task-history/${taskName}`, {
         method: "DELETE",
       });
 
