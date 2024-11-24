@@ -24,7 +24,7 @@ const OrganizationManagementCard: React.FC = () => {
 
   const fetchOrganizations = () => {
     setLoading(true);
-    fetch('http://api/github/organizations')
+    fetch('/api//github/organizations')
       .then((response) => response.json())
       .then((data) => {
         setOrganizations(data);
@@ -40,10 +40,10 @@ const OrganizationManagementCard: React.FC = () => {
     }
 
     setLoading(true);
-    fetch(`http://api/github/org-users2/${newOrg}`, { method: 'GET' })
+    fetch(`/api//github/org-users2/${newOrg}`, { method: 'GET' })
       .then((response) => {
         if (response.ok) {
-          return fetch('http://api/github/organizations');
+          return fetch('/api//github/organizations');
         } else {
           throw new Error('Error al agregar la organización');
         }

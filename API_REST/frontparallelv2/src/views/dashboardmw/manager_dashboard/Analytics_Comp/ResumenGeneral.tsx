@@ -14,7 +14,7 @@ const ResumenGeneral: React.FC = () => {
   const [data, setData] = useState<ResumenData | null>(null);
 
   useEffect(() => {
-    fetch('http://api/stadistics/api/dashboard/resumen')
+    fetch('/api//stadistics/api/dashboard/resumen')
       .then(response => response.json())
       .then(data => setData(data))
       .catch(error => console.error('Error fetching resumen data:', error));

@@ -13,7 +13,7 @@ const EstadisticasColaboracion: React.FC = () => {
   const [data, setData] = useState<ColaboracionAnualData | null>(null);
 
   useEffect(() => {
-    fetch('http://api/stadistics/api/estadisticas/colaboracion_anual')
+    fetch('/api//stadistics/api/estadisticas/colaboracion_anual')
       .then(response => response.json())
       .then(data => setData(data))
       .catch(error => console.error('Error fetching collaboration yearly data:', error));

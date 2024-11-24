@@ -60,7 +60,7 @@ const Messages: React.FC = () => {
         let response;
         if (currentUser.is_manager == true) {
           // Manager: Obtener todos los miembros de la organización
-          response = await fetch(`http://api/messages/messages/members`, {
+          response = await fetch(`/api//messages/messages/members`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -68,7 +68,7 @@ const Messages: React.FC = () => {
         } else {
           // Worker: Obtener los miembros de su grupo asignado
           response = await fetch(
-            `http://api/messages/messages/members?group_id=${currentUser.group_id}`,
+            `/api//messages/messages/members?group_id=${currentUser.group_id}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -106,7 +106,7 @@ const fetchMessages = async (memberId: number) => {
   const token = localStorage.getItem("token");
   try {
     const response = await fetch(
-      `http://api/messages/messages/conversation/${memberId}`,
+      `/api//messages/messages/conversation/${memberId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -152,7 +152,7 @@ const fetchMessages = async (memberId: number) => {
 
     try {
 
-      const responseUser = await fetch('http://api/auth/users/me', {
+      const responseUser = await fetch('/api//auth/users/me', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const dataUser = await responseUser.json();
@@ -163,7 +163,7 @@ const fetchMessages = async (memberId: number) => {
           avatar_url: dataUser.avatar_url,
         });
       }
-      const response = await fetch(`http://api/messages/messages/send`, {
+      const response = await fetch(`/api//messages/messages/send`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

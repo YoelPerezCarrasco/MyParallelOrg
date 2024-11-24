@@ -34,7 +34,7 @@ const CelerySchedulerCard: React.FC = () => {
 
 
         // Obtener la frecuencia actual
-        const response = await fetch('http://api/adminml/get_celery_schedule', {
+        const response = await fetch('/api//adminml/get_celery_schedule', {
           headers,
         });
         if (response.ok) {
@@ -44,7 +44,7 @@ const CelerySchedulerCard: React.FC = () => {
           console.error('Error al obtener la frecuencia actual');
         }
         // Obtener el historial
-        const historyResponse = await fetch('http://api/adminml/update_history', {
+        const historyResponse = await fetch('/api//adminml/update_history', {
           headers,
         });
         if (historyResponse.ok) {
@@ -70,7 +70,7 @@ const CelerySchedulerCard: React.FC = () => {
       };
       const authTokens = localStorage.getItem('authTokens');
       const org_name = JSON.parse(authTokens || '{}').org_name;
-      const response = await fetch('http://api/adminml/update_celery_schedule', {
+      const response = await fetch('/api//adminml/update_celery_schedule', {
         method: 'POST',
         headers,
         body: JSON.stringify({ frequency }),
@@ -78,7 +78,7 @@ const CelerySchedulerCard: React.FC = () => {
       if (response.ok) {
         alert('Frecuencia actualizada exitosamente');
         // Actualizar el historial después de guardar
-        const historyResponse = await fetch('http://api/adminml/update_history', {
+        const historyResponse = await fetch('/api//adminml/update_history', {
           headers,
         });
         if (historyResponse.ok) {

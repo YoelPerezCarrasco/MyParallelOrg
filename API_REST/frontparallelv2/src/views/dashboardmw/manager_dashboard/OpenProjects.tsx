@@ -70,7 +70,7 @@ const OpenProjects: React.FC = () => {
       setIsLoading(true);
       const token = localStorage.getItem('token');
       try {
-        const response = await fetch('http://api/stadistics/organization/manager/projects', {
+        const response = await fetch('/api//stadistics/organization/manager/projects', {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (response.ok) {

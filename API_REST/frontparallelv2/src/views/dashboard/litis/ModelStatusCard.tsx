@@ -25,7 +25,7 @@ const ModelStatusCard: React.FC = () => {
 
   const fetchOrganizations = () => {
     setLoading(true);
-    fetch('http://api/github/organizations')
+    fetch('/api//github/organizations')
       .then((response) => response.json())
       .then((data) => setOrganizations(data))
       .catch((error) => setError('Error al obtener las organizaciones.'))
@@ -39,7 +39,7 @@ const ModelStatusCard: React.FC = () => {
     }
     const token = localStorage.getItem('token');
     setLoading(true);
-    fetch('http://api/adminml/admin/train-model', {
+    fetch('/api//adminml/admin/train-model', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

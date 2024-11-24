@@ -53,7 +53,7 @@ const ManagerDashboard: React.FC = () => {
             }
 
             try {
-                const responseUsers = await fetch('http://api/users/manager/users/details', {
+                const responseUsers = await fetch('/api//users/manager/users/details', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
@@ -67,7 +67,7 @@ const ManagerDashboard: React.FC = () => {
                     alert('No se pudieron obtener los detalles de los usuarios');
                 }
 
-                const responseGrupos = await fetch('http://api/workgroups/manager/groups', {
+                const responseGrupos = await fetch('/api//workgroups/manager/groups', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
