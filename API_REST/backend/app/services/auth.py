@@ -103,7 +103,7 @@ def send_confirmation_email(email: str, token: str):
     sender_password = EMAIL_PASSWORD
 
     # Crear el enlace de confirmación
-    confirmation_url = f"http://localhost:8000/auth/auth/confirm/{token}"
+    confirmation_url = f"/api//auth/auth/confirm/{token}"
 
     # Contenido HTML del correo
     html_content = f"""
