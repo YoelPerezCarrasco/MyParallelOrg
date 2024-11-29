@@ -141,7 +141,7 @@ async def confirm_email(token: str, db: Session = Depends(get_db)):
         db.commit()
 
         # Redirige al inicio de sesión
-        return RedirectResponse(url="http://localhost:3000/login")
+        return RedirectResponse(url="http://prodiasv21.fis.usal.es/login")
     except Exception as e:
         raise HTTPException(status_code=400, detail="Error al confirmar el correo: " + str(e))
 

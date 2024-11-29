@@ -102,8 +102,10 @@ def send_confirmation_email(email: str, token: str):
     sender_email = EMAIL_SENDER
     sender_password = EMAIL_PASSWORD
 
+    
+
     # Crear el enlace de confirmación
-    confirmation_url = f"/api//auth/auth/confirm/{token}"
+    confirmation_url = f"http://prodiasv21.fis.usal.es/api//auth/auth/confirm/{token}"
 
     # Contenido HTML del correo
     html_content = f"""
