@@ -58,7 +58,7 @@ const UserWorkGroup: React.FC = () => {
     const fetchData = async () => {
       try {
         // Obtener datos del usuario
-        const responseUser = await fetch('http://localhost:8000/auth/users/me', {
+        const responseUser = await fetch('/api//auth/users/me', {
           headers: { Authorization: `Bearer ${token}` },
         });
         const dataUser = await responseUser.json();
@@ -71,7 +71,7 @@ const UserWorkGroup: React.FC = () => {
         }
 
         // Obtener grupo de trabajo del usuario
-        const responseGroup = await fetch('http://localhost:8000/workgroups/workgroups/user/group', {
+        const responseGroup = await fetch('/api//workgroups/workgroups/user/group', {
           headers: { Authorization: `Bearer ${token}` },
         });
         const dataGroup = await responseGroup.json();
@@ -83,7 +83,7 @@ const UserWorkGroup: React.FC = () => {
           setIsLeader(dataGroup.is_leader);
 
           // Obtener proyecto asignado al grupo
-          const responseProject = await fetch(`http://localhost:8000/projects/projects/group/${dataGroup.grupo_id}`, {
+          const responseProject = await fetch(`/api//projects/projects/group/${dataGroup.grupo_id}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           if (responseProject.ok) {
@@ -91,7 +91,7 @@ const UserWorkGroup: React.FC = () => {
             setProject(dataProject);
 
             // Obtener miembros del grupo con detalles
-            const responseMembers = await fetch(`http://localhost:8000/workgroups/workgroups/group/${dataGroup.grupo_id}/members/details`, {
+            const responseMembers = await fetch(`/api//workgroups/workgroups/group/${dataGroup.grupo_id}/members/details`, {
               headers: { Authorization: `Bearer ${token}` },
             });
             const dataMembers = await responseMembers.json();
@@ -103,7 +103,7 @@ const UserWorkGroup: React.FC = () => {
             setProject(null);
 
             // Obtener miembros del grupo sin detalles
-            const responseMembers = await fetch(`http://localhost:8000/workgroups/workgroups/group/${dataGroup.grupo_id}/members`, {
+            const responseMembers = await fetch(`/api//workgroups/workgroups/group/${dataGroup.grupo_id}/members`, {
               headers: { Authorization: `Bearer ${token}` },
             });
             const dataMembers = await responseMembers.json();
@@ -125,7 +125,7 @@ const UserWorkGroup: React.FC = () => {
 
           // Si es líder, obtener todos los proyectos disponibles
           if (dataGroup.is_leader) {
-            const responseProjects = await fetch('http://localhost:8000/projects/projects/available', {
+            const responseProjects = await fetch('/api//projects/projects/available', {
               headers: { Authorization: `Bearer ${token}` },
             });
             const dataProjects = await responseProjects.json();
@@ -152,7 +152,7 @@ const UserWorkGroup: React.FC = () => {
     if (selectedProject && workGroup) {
       const token = localStorage.getItem('token');
       try {
-        const response = await fetch(`http://localhost:8000/projects/projects/assign`, {
+        const response = await fetch(`/api//projects/projects/assign`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -169,7 +169,7 @@ const UserWorkGroup: React.FC = () => {
           setOpenDialog(false);
 
           // Actualizar los detalles de los miembros con las nuevas estadísticas del proyecto asignado
-          const responseMembers = await fetch(`http://localhost:8000/workgroups/workgroups/group/${workGroup.grupo_id}/members/details`, {
+          const responseMembers = await fetch(`/api//workgroups/workgroups/group/${workGroup.grupo_id}/members/details`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           const dataMembers = await responseMembers.json();
