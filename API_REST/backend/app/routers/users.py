@@ -1,4 +1,7 @@
 # crud/user.py
+import os
+
+import pandas as pd
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.models.user import GruposTrabajo, UserInteractions, UserModel, GitHubUserModel
@@ -118,6 +121,11 @@ async def delete_user_endpoint(user_id: int, db: Session = Depends(get_db), curr
     db.delete(user)
     db.commit()
     return {"message": "User deleted successfully"}
+from random import uniform
+
+def generate_position():
+    return {"x": uniform(-100, 100), "y": uniform(-100, 100), "z": 0}
+
 
 @router.get("/user-connections/{org_name}")
 async def get_user_connections(org_name: str, db: Session = Depends(get_db)):
@@ -130,55 +138,68 @@ async def get_user_connections(org_name: str, db: Session = Depends(get_db)):
     groups = db.query(GruposTrabajo).filter_by(organizacion=org_name).all()
     if not groups:
         raise HTTPException(status_code=404, detail="No groups found in the organization")
+
+    # Construir el nombre del archivo CSV basado en el nombre de la organización
+    csv_path = f"/app/modelos/{org_name}_interacciones.csv"  # Asegúrate de que los CSV estén en una carpeta "data/"
+    if not os.path.exists(csv_path):
+        raise HTTPException(status_code=404, detail=f"CSV file not found for organization: {org_name}")
+    
+    # Leer las interacciones desde el CSV
+    try:
+        interactions_df = pd.read_csv(csv_path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error reading CSV: {str(e)}")
     
     # Crear un diccionario de usuarios para acceso rápido por ID
     users_dict = {user.id: user for user in users_in_org}
 
-    # Crear nodos (solo usuarios que están en grupos)
+    # Crear nodos con información de los grupos
     user_ids_in_groups = {group.usuario_id for group in groups if group.usuario_id}
     nodes = []
     for user_id in user_ids_in_groups:
         user = users_dict.get(user_id)
         if user:
+            user_group_id = next((group.grupo_id for group in groups if group.usuario_id == user_id), None)
+
             nodes.append({
                 "id": str(user.id),
                 "label": user.username,
                 "icon": user.avatar_url or "",
-                "github_url": f"https://github.com/{user.username}"
+                "github_url": f"https://github.com/{user.username}",
+                "position": generate_position(),  # Generar posición inicial aleatoria
+                "data": {
+                    "group": f"Group {user_group_id}"  # Agregar el grupo como identificador del clúster
+                }
             })
 
-    # Crear aristas (relaciones entre usuarios en los mismos grupos)
+    # Crear aristas basadas en las interacciones del CSV
     edges = []
     valid_node_ids = {node["id"] for node in nodes}  # IDs válidos basados en nodos existentes
-    processed_pairs = set()  # Para evitar duplicados
-    for group in groups:
-        group_id = group.grupo_id
-        # Obtener todos los miembros del grupo
-        members = [g.usuario_id for g in groups if g.grupo_id == group_id and g.usuario_id]
-        # Convertir IDs de miembros a strings para coincidir con IDs de nodos
-        member_ids = [str(member_id) for member_id in members if str(member_id) in valid_node_ids]
-        # Crear aristas entre cada par de miembros
-        for i in range(len(member_ids)):
-            for j in range(i + 1, len(member_ids)):
-                source = member_ids[i]
-                target = member_ids[j]
-                # Evitar aristas duplicadas
-                pair = tuple(sorted([source, target]))
-                if pair not in processed_pairs:
-                    processed_pairs.add(pair)
-                    edge_id = f"{source}-{target}"
-                    edges.append({
-                        "id": edge_id,
-                        "source": source,
-                        "target": target,
-                        "label": f"Group {group_id}"
-                    })
+    processed_pairs = set()  # Evitar duplicados
+    for _, row in interactions_df.iterrows():
+        source = str(row["user_1"])
+        target = str(row["user_2"])
+        if source in valid_node_ids and target in valid_node_ids:
+            pair = tuple(sorted([source, target]))
+            if pair not in processed_pairs:
+                processed_pairs.add(pair)
+                label = (
+                    f"Commits: {row['commits_juntos']}, "
+                    f"Contributions: {row['contributions_juntas']}, "
+                    f"PR Comments: {row['pull_requests_comentados']}, "
+                    f"Reviews: {row['revisiones']}"
+                )
+                edges.append({
+                    "id": f"{source}-{target}",
+                    "source": source,
+                    "target": target,
+                    "label": label  # Etiqueta con detalles de la interacción
+                })
 
-    # Devolver datos en el formato solicitado
     return {
         "nodes": nodes,
         "edges": edges
-    }
+    } 
 
 @router.get("/user/connections")
 async def get_user_connections_current(current_user: UserModel = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -201,7 +222,8 @@ async def get_user_connections_current(current_user: UserModel = Depends(get_cur
                 "avatar_url": user.avatar_url,
                 "github_url": f"https://github.com/{user.username}"
             })
-
+ 
+ 
     if not connected_users:
         return {"message": "No connections found in your organization."}
 
