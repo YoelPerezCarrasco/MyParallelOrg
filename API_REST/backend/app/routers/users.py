@@ -140,7 +140,7 @@ async def get_user_connections(org_name: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="No groups found in the organization")
 
     # Construir el nombre del archivo CSV basado en el nombre de la organización
-    csv_path = f"/app/modelos/{org_name}_interacciones.csv"  # Asegúrate de que los CSV estén en una carpeta "data/"
+    csv_path = f"data/{org_name}_interacciones.csv"  # Asegúrate de que los CSV estén en una carpeta "data/"
     if not os.path.exists(csv_path):
         raise HTTPException(status_code=404, detail=f"CSV file not found for organization: {org_name}")
     
@@ -180,27 +180,28 @@ async def get_user_connections(org_name: str, db: Session = Depends(get_db)):
         source = str(row["user_1"])
         target = str(row["user_2"])
         if source in valid_node_ids and target in valid_node_ids:
-            pair = tuple(sorted([source, target]))
-            if pair not in processed_pairs:
-                processed_pairs.add(pair)
-                label = (
-                    f"Commits: {row['commits_juntos']}, "
-                    f"Contributions: {row['contributions_juntas']}, "
-                    f"PR Comments: {row['pull_requests_comentados']}, "
-                    f"Reviews: {row['revisiones']}"
-                )
-                edges.append({
-                    "id": f"{source}-{target}",
-                    "source": source,
-                    "target": target,
-                    "label": label  # Etiqueta con detalles de la interacción
-                })
+            # Filtrar solo si el campo "resultado" es 1
+            if row["resultado"] == 1:
+                pair = tuple(sorted([source, target]))
+                if pair not in processed_pairs:
+                    processed_pairs.add(pair)
+                    label = (
+                        f"Commits: {row['commits_juntos']}, "
+                        f"Contributions: {row['contributions_juntas']}, "
+                        f"PR Comments: {row['pull_requests_comentados']}, "
+                        f"Reviews: {row['revisiones']}"
+                    )
+                    edges.append({
+                        "id": f"{source}-{target}",
+                        "source": source,
+                        "target": target,
+                        "label": label  # Etiqueta con detalles de la interacción
+                    })
 
     return {
         "nodes": nodes,
         "edges": edges
-    } 
-
+    }
 @router.get("/user/connections")
 async def get_user_connections_current(current_user: UserModel = Depends(get_current_user), db: Session = Depends(get_db)):
     try:
