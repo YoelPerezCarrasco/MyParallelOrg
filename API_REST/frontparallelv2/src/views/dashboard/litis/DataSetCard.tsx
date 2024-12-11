@@ -74,7 +74,7 @@ const DatasetCard: React.FC = () => {
     const token = localStorage.getItem('token');
 
     try {
-      const response = await fetch(`/api//adminml/generateSim-dataset/${selectedOrg}`, {
+      const response = await fetch(`/api//adminml/generate-dataset/${selectedOrg}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
