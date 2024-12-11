@@ -140,7 +140,7 @@ async def get_user_connections(org_name: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="No groups found in the organization")
 
     # Construir el nombre del archivo CSV basado en el nombre de la organización
-    csv_path = f"data/{org_name}_interacciones.csv"  # Asegúrate de que los CSV estén en una carpeta "data/"
+    csv_path = f"/app/modelos/{org_name}_interacciones.csv"  # Asegúrate de que los CSV estén en una carpeta "data/"
     if not os.path.exists(csv_path):
         raise HTTPException(status_code=404, detail=f"CSV file not found for organization: {org_name}")
     
