@@ -149,8 +149,7 @@ MIT © 2025 Yoel Pérez Carrasco
 
 ## 📧 Contacto
 
-* **Yoel Pérez Carrasco** – yoel.perez@example.com
+* **Yoel Pérez Carrasco** – yoelperez@usal.com
 * [LinkedIn](https://www.linkedin.com/in/yoelperezc)
 
-Si utilizas MyParallelOrg en tu investigación o producto, ¡cuéntame! 😊
 
