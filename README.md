@@ -58,7 +58,7 @@ MyParallelOrg es una plataforma web que analiza interacciones públicas en GitHu
 
 ```bash
 # 1. Clona el repositorio
-   git clone https://github.com/tu‑usuario/myparallelorg.git
+   git clone https://github.com/yoelperezcarrasco/myparallelorg.git
    cd myparallelorg
 
 # 2. Backend
