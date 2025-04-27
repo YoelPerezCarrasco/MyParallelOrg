@@ -14,7 +14,7 @@ MyParallelOrg es una plataforma web que analiza interacciones públicas en GitHu
 
 | Módulo | Descripción |
 |--------|-------------|
-| **Extracción de datos** | Ingesta masiva a través de la **GitHub REST API** (paginação + parallel requests) con persistencia en PostgreSQL. |
+| **Extracción de datos** | Ingesta masiva a través de la **GitHub REST API** ( parallel requests) con persistencia en PostgreSQL. |
 | **Detección de anomalías** | Algoritmos como **Isolation Forest** y **Local Outlier Factor** para hallar picos inusuales en actividad, latencias de revisión, etc. |
 | **Visualización sin librerías externas** | Gráficos interactivos (canvas/svg vanilla JS) renderizados en el navegador para cumplir la restricción académica ↔ “no librerías gráficas”. |
 | **Chatbot RAG** | Asistente contextual que combina embeddings y DeepSeek-LM para responder preguntas sobre los datos almacenados. |
